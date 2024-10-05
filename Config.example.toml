@@ -1,0 +1,9 @@
+StudentId = '{fvti sso id}'
+
+[Login]
+Password = '{fvti sso password}'
+Authorization = 'Bearer {token}'
+
+[Task]
+Name = '24级新生晚点名'
+Id = '3ebb9f9d-a8fe-49b4-9e61-9079e09868be'

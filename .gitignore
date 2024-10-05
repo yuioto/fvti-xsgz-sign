@@ -7,6 +7,8 @@
 *.dll
 *.so
 *.dylib
+# go build file use module name
+fvti-xsgz-sign
 
 # Test binary, built with `go test -c`
 *.test
@@ -23,3 +25,12 @@ go.work.sum
 
 # env file
 .env
+
+# temp file
+*~
+~.bak
+*.{temp,tmp}
+
+# non-example file
+Config.toml
+xsgz-sign.hurl
