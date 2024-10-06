@@ -18,15 +18,15 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// while config.Task.Id != nil, jump GetTaskId
+	// while config.Task.Id == nil, jump GetTaskId
 	if config.Task.Id == "" {
-		config.Task.Id, _ = savestusignin.GetTaskId(config.Task.Name)
+		config.Task.Id, _ = savestusignin.GetTaskId(config.Task.Name, config.Login.Authorization)
 		if err != nil {
 			log.Fatalln("Failed to requeset Task.Id:", err)
 		}
 	}
 
-	fmt.Println("Config:\n", config) // debug
+	//fmt.Println("Config:\n", config) // debug
 
 	fmt.Println("StudentId:", config.StudentId)
 	fmt.Println("Password:", config.Login.Password)

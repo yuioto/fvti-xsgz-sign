@@ -1,7 +1,7 @@
-StudentId = '{fvti sso id}'
+StudentId = '{fvti_sso_id}'
 
 [Login]
-Password = '{fvti sso password}'
+Password = '{fvti_sso_password}'
 Authorization = 'Bearer {token}'
 
 [Task]
