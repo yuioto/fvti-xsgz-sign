@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	cfgset "fvti-xsgz-sign/utils/config"
@@ -18,6 +17,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	//if savestusignin.GetTaskList(config.Login.Authorization) != nil {}
+
 	// while config.Task.Id == nil, jump GetTaskId
 	if config.Task.Id == "" {
 		config.Task.Id, _ = savestusignin.GetTaskId(config.Task.Name, config.Login.Authorization)
@@ -25,12 +26,9 @@ func main() {
 			log.Fatalln("Failed to requeset Task.Id:", err)
 		}
 	}
+	//fmt.Println(config.Login.Authorization, config.Task.Id) // debug: check id update
 
-	//fmt.Println("Config:\n", config) // debug
-
-	fmt.Println("StudentId:", config.StudentId)
-	fmt.Println("Password:", config.Login.Password)
-	fmt.Println("Authorization:", config.Login.Authorization)
-	fmt.Println("Task.Name:", config.Task.Name)
-	fmt.Println("Task.Id:", config.Task.Id)
+	if err := savestusignin.PostStuSignIn(config.StudentId, config.Task.Id, config.Login.Authorization); err != nil {
+		log.Fatalln("Failed sign:", err)
+	}
 }
