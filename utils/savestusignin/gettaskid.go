@@ -28,7 +28,7 @@ func GetIdFromList(taskjson string, name string) (string, error) {
 			return item.Id, nil
 		}
 	}
-	return "", fmt.Errorf("Item with name %s not fount", name)
+	return "", fmt.Errorf("item with name %s not fount", name)
 }
 
 func GetTaskList(authorization string) (string, error) {
