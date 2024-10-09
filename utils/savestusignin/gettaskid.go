@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	cfgset "fvti-xsgz-sign/utils/config"
 )
 
 func GetTaskId(name string, authorization string) (string, error) {
@@ -44,7 +46,7 @@ func GetTaskList(authorization string) (string, error) {
 	req.Header.Set("Connection", "keep-alive")
 	//req.Header.Set("Accept-Encoding", "gzip, deflate, br") // set gzip compress
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("User-Agent", cfgset.UserAgent)
 	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Sec-Fetch-Mode", "cors")
 	req.Header.Set("Host", "xsgz.webvpn.fvti.cn")

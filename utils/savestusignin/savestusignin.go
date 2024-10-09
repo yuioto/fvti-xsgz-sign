@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+
+	cfgset "fvti-xsgz-sign/utils/config"
 )
 
 func PostStuSignIn(studentid string, id string, authorization string) error {
@@ -22,9 +24,9 @@ func PostStuSignIn(studentid string, id string, authorization string) error {
 	data.Add("ApplyInfo[QrCodeContent]", "")
 	data.Add("ApplyInfo[IsDWQDW]", "0")
 	data.Add("ApplyInfo[SingnScope]", "")
-	data.Add("ApplyInfo[Latitude]", Latitude)
-	data.Add("ApplyInfo[Longitude]", Longitude)
-	data.Add("ApplyInfo[SingnSite]", SingnSite)
+	data.Add("ApplyInfo[Latitude]", cfgset.Latitude)
+	data.Add("ApplyInfo[Longitude]", cfgset.Longitude)
+	data.Add("ApplyInfo[SingnSite]", cfgset.SingnSite)
 	data.Add("ApplyInfo[InputUser]", "")
 	data.Add("ApplyInfo[InputDate]", "")
 	data.Add("ApplyInfo[collegeNo]", "")
@@ -47,7 +49,7 @@ func PostStuSignIn(studentid string, id string, authorization string) error {
 	//req.Header.Set("Accept-Encoding", "gzip, deflate, br") // set gzip compress
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("User-Agent", cfgset.UserAgent)
 	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Sec-Fetch-Mode", "cors")
 	req.Header.Set("Host", "xsgz.webvpn.fvti.cn")
