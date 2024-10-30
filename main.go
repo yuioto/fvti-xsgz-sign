@@ -31,9 +31,4 @@ func main() {
 		log.Fatalln("Failed sign:", err)
 	}
 	log.Println("Sign successfully.")
-
-	//if a, err := checklogin.GetSignHistory(config.Task.Id, "2", config.Login.Authorization); err != nil {
-	//	log.Fatalln("Failed to GetSignHistory")
-	//	fmt.Println(a)
-	//}
 }

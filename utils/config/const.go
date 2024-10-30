@@ -29,3 +29,5 @@ The server didn't respond in time.
 
 const StatusSignOk_StatusCode = http.StatusOK
 const StatusSignOk = `{"errcode":0,"errmsg":"签到成功！"}`
+
+const StatusSignSuccessfullyOk = "是"

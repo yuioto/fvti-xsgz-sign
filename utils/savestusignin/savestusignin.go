@@ -2,6 +2,7 @@ package savestusignin
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -72,8 +73,11 @@ func PostStuSignIn(studentid string, id string, authorization string) error {
 	}
 
 	// StatusCode should is Ok
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != cfgset.StatusSignOk_StatusCode {
 		log.Fatalln("Failed post sign, StatusCode:", resp.StatusCode, string(body))
+	}
+	if QD := GetTaskQD(id, authorization); QD != cfgset.StatusSignSuccessfullyOk {
+		return fmt.Errorf("server ok, but sign failed")
 	}
 
 	return nil
