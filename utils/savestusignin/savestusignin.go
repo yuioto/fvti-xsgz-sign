@@ -11,7 +11,7 @@ import (
 )
 
 func PostStuSignIn(studentid string, id string, authorization string) error {
-	signurl := "https://xsgz.webvpn.fvti.cn/PhoneApi/api/SignIn/SaveStuSignIn"
+	signURL := "https://xsgz.webvpn.fvti.cn/PhoneApi/api/SignIn/SaveStuSignIn"
 
 	data := url.Values{}
 	data.Add("ApplyInfo[Id]", "00000000-0000-0000-0000-000000000000")
@@ -37,7 +37,7 @@ func PostStuSignIn(studentid string, id string, authorization string) error {
 	data.Add("ApplyInfo[InsertUserName]", "")
 	data.Add("ApplyInfo[InsertDate]", "")
 
-	req, err := http.NewRequest("POST", signurl, bytes.NewBufferString(data.Encode()))
+	req, err := http.NewRequest("POST", signURL, bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		return err
 	}
@@ -52,8 +52,8 @@ func PostStuSignIn(studentid string, id string, authorization string) error {
 	req.Header.Set("User-Agent", cfgset.UserAgent)
 	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Sec-Fetch-Mode", "cors")
-	req.Header.Set("Host", "xsgz.webvpn.fvti.cn")
-	req.Header.Set("Referer", "https://xsgz.webvpn.fvti.cn/Phone/index.html")
+	req.Header.Set("Host", cfgset.Host)
+	req.Header.Set("Referer", cfgset.Referer)
 	req.Header.Set("Accept-Language", "zh-CN,zh-Hans;q=0.9")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 

@@ -21,8 +21,7 @@ func main() {
 
 	// while config.Task.Id == nil, jump GetTaskId
 	if config.Task.Id == "" {
-		config.Task.Id, _ = savestusignin.GetTaskId(config.Task.Name, config.Login.Authorization)
-		if err != nil {
+		if config.Task.Id, err = savestusignin.GetTaskId(config.Task.Name, config.Login.Authorization); err != nil {
 			log.Fatalln("Failed to requeset Task.Id:", err)
 		}
 	}
@@ -31,4 +30,10 @@ func main() {
 	if err := savestusignin.PostStuSignIn(config.StudentId, config.Task.Id, config.Login.Authorization); err != nil {
 		log.Fatalln("Failed sign:", err)
 	}
+	log.Println("Sign successfully.")
+
+	//if a, err := checklogin.GetSignHistory(config.Task.Id, "2", config.Login.Authorization); err != nil {
+	//	log.Fatalln("Failed to GetSignHistory")
+	//	fmt.Println(a)
+	//}
 }

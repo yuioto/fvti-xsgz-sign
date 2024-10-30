@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	cfgset "fvti-xsgz-sign/utils/config"
 )
@@ -33,6 +35,46 @@ func GetIdFromList(taskjson string, name string) (string, error) {
 	return "", fmt.Errorf("item with name %s not fount", name)
 }
 
+func GetDateFromList(taskjson string, name string) (startTime string, endTime string, err error) {
+	var taskList TaskList
+	if err := json.Unmarshal([]byte(taskjson), &taskList); err != nil {
+		return "", "", err
+	}
+
+	for _, item := range taskList.List.Items {
+		if item.Name == name {
+			if startTime, endTime, err := extractTimes(item.QDTimeText); err != nil {
+				return "", "", fmt.Errorf("提取时间范围错误: %v", err)
+			} else {
+				return startTime, endTime, nil
+			}
+		}
+	}
+	return "", "", fmt.Errorf("item with name %s not fount date", name)
+}
+
+// 函数提取时间范围
+func extractTimes(timeRange string) (startTime string, endTime string, err error) {
+	// 按“至”分割字符串
+	parts := strings.Split(timeRange, "至")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("时间范围格式错误")
+	}
+
+	// 去除多余的空格
+	startTime = strings.TrimSpace(parts[0])
+	endTime = strings.TrimSpace(parts[1])
+
+	// 验证时间格式
+	_, err1 := time.Parse("15:04", startTime)
+	_, err2 := time.Parse("15:04", endTime)
+	if err1 != nil || err2 != nil {
+		return "", "", fmt.Errorf("时间格式错误: %v %v", err1, err2)
+	}
+
+	return startTime, endTime, nil
+}
+
 func GetTaskList(authorization string) (string, error) {
 	url := "https://xsgz.webvpn.fvti.cn/PhoneApi/api/SignIn/GetStuSignInList"
 	req, err := http.NewRequest("GET", url, nil)
@@ -49,8 +91,8 @@ func GetTaskList(authorization string) (string, error) {
 	req.Header.Set("User-Agent", cfgset.UserAgent)
 	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Sec-Fetch-Mode", "cors")
-	req.Header.Set("Host", "xsgz.webvpn.fvti.cn")
-	req.Header.Set("Referer", "https://xsgz.webvpn.fvti.cn/Phone/index.html")
+	req.Header.Set("Host", cfgset.Host)
+	req.Header.Set("Referer", cfgset.Referer)
 	req.Header.Set("Accept-Language", "zh-CN,zh-Hans;q=0.9")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 
@@ -85,6 +127,7 @@ type List struct {
 }
 
 type Items struct {
-	Id   string `json:"Id"`
-	Name string `json:"Name"`
+	Id         string `json:"Id"`
+	Name       string `json:"Name"`
+	QDTimeText string `json:"QDTimeText"`
 }
