@@ -17,7 +17,13 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	//if savestusignin.GetTaskList(config.Login.Authorization) != nil {}
+	if config.Login.Authorization == "" {
+		if config.Login.Authorization, err = savestusignin.GetAuthorization(config.StudentId, config.Login.Password); err != nil {
+			log.Fatalln("Failed to requeset Login.Authorization:", err)
+		}
+	}
+
+	//fmt.Println(config.Login.Authorization)
 
 	// while config.Task.Id == nil, jump GetTaskId
 	if config.Task.Id == "" {
@@ -25,6 +31,7 @@ func main() {
 			log.Fatalln("Failed to requeset Task.Id:", err)
 		}
 	}
+
 	//fmt.Println(config.Login.Authorization, config.Task.Id) // debug: check id update
 
 	if err := savestusignin.PostStuSignIn(config.StudentId, config.Task.Id, config.Login.Authorization); err != nil {
