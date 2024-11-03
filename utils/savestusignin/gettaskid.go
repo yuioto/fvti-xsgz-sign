@@ -10,6 +10,15 @@ import (
 	cfgset "fvti-xsgz-sign/utils/config"
 )
 
+func GetSignId(id string, authorization string) string {
+	taskList, _ := GetTaskList(authorization)
+	qd, err := GetSignIdFromList(taskList, id)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return qd
+}
+
 func GetTaskQD(id string, authorization string) string {
 	taskList, _ := GetTaskList(authorization)
 	qd, err := GetQDFromList(taskList, id)
@@ -26,6 +35,20 @@ func GetTaskId(name string, authorization string) (string, error) {
 		log.Fatalln(err)
 	}
 	return id, nil
+}
+
+func GetSignIdFromList(taskjson string, id string) (string, error) {
+	var taskList TaskList
+	if err := json.Unmarshal([]byte(taskjson), &taskList); err != nil {
+		return "", err
+	}
+
+	for _, item := range taskList.List.Items {
+		if item.Id == id {
+			return item.SignId, nil
+		}
+	}
+	return "", fmt.Errorf("item with id %s not fount", id)
 }
 
 func GetQDFromList(taskjson string, id string) (string, error) {
@@ -111,5 +134,6 @@ type Items struct {
 	Id         string `json:"Id"`
 	Name       string `json:"Name"`
 	QD         string `json:"QD"`
+	SignId     string `json:"SignID"`
 	QDTimeText string `json:"QDTimeText"`
 }

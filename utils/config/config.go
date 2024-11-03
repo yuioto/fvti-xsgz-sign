@@ -34,6 +34,7 @@ type Config struct {
 	StudentId string
 	Login     login
 	Task      task
+	Nofy      string
 }
 
 type task struct {

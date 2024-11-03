@@ -9,15 +9,16 @@ import (
 
 func CreateDefaultConfig(filename string) {
 	defaultConfig := Config{
-		StudentId: "{fvti_sso_id}",
+		StudentId: "{fvti_student_id}",
 		Login: login{
-			Password:      "{fvti_sso_password}",
-			Authorization: "Bearer {token}",
+			Password:      "{fvti_xsgz_password}",
+			Authorization: "",
 		},
 		Task: task{
 			Name: "24级新生晚点名",
-			Id:   "3ebb9f9d-a8fe-49b4-9e61-9079e09868be",
+			Id:   "",
 		},
+		Nofy: "fvti-xsgz-sign-task-default-status",
 	}
 
 	file, err := os.Create(filename)

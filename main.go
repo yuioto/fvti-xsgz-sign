@@ -4,6 +4,7 @@ import (
 	"log"
 
 	cfgset "fvti-xsgz-sign/utils/config"
+	"fvti-xsgz-sign/utils/notify"
 	"fvti-xsgz-sign/utils/savestusignin"
 )
 
@@ -35,7 +36,11 @@ func main() {
 	//fmt.Println(config.Login.Authorization, config.Task.Id) // debug: check id update
 
 	if err := savestusignin.PostStuSignIn(config.StudentId, config.Task.Id, config.Login.Authorization); err != nil {
+		notify.SendNtfyMessage(config.Nofy, "max", "Sign Failed", "Sign")
 		log.Fatalln("Failed sign:", err)
 	}
-	log.Println("Sign successfully.")
+	//log.Println("Sign successfully.")
+
+	msg := "StudentId: " + config.StudentId + " sign " + config.Task.Id + " SignId is " + savestusignin.GetSignId(config.Task.Id, config.Login.Authorization)
+	notify.SendNtfyMessage(config.Nofy, "high", "Sign Done", msg)
 }

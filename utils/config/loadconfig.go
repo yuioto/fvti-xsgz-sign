@@ -29,7 +29,7 @@ func LoadConfig(configFile string) (Config, error) {
 		if err := toml.Unmarshal(cfg, &config); err != nil {
 			return config, fmt.Errorf("failed to unmarshal TOML file: %w", err)
 		}
-		log.Println("Config file read successfully")
+		//log.Println("Config file read successfully")
 	}
 
 	return config, nil

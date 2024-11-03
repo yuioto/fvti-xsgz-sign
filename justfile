@@ -6,4 +6,5 @@ default:
 run-bash:
     while ! go run . ; do :; done
 
-#run-powershell:
+time-bash:
+    @time just run-bash
