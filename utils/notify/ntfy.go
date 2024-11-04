@@ -6,6 +6,8 @@ import (
 )
 
 func SendNtfyMessage(topic string, level string, title string, message string) error {
+	atriSleep := "https://i0.hdslb.com/bfs/article/b11ad7419cd98dfb661f23505a996288ef694932.jpg"
+
 	url := "https://ntfy.sh/" + topic
 
 	req, err := http.NewRequest("POST", url, strings.NewReader(message))
@@ -13,7 +15,7 @@ func SendNtfyMessage(topic string, level string, title string, message string) e
 	req.Header.Set("Title", title)
 	req.Header.Set("Priority", level)
 	req.Header.Set("Tags", "fvti,xsgz,sign")
-	req.Header.Set("Attach", "https://i.postimg.cc/Bbnd59F1/atri-learn.jpg")
+	req.Header.Set("Attach", atriSleep)
 	http.DefaultClient.Do(req)
 	if err != nil {
 		return err
