@@ -1,3 +1,16 @@
+/*!
+ * Project Name: fvti xsgz
+ * Copyright (c) 众望 2023 - 2024
+ * 
+ * This file is the version of the original file containing the patch.
+ * Patch section Copyright (c) the author of this submission 2024
+ *
+ * All rights reserved. This code is proprietary and may only be viewed.
+ * Users may not modify, distribute, or use this code for any purpose without explicit permission.
+ *
+ * See: https://xsgz.webvpn.fvti.cn/userhall/Login/Index statement at the bottom of the page.
+*/
+
 function encode(password) {
 
     navigator = {
