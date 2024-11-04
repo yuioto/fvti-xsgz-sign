@@ -40,6 +40,7 @@ type Config struct {
 type task struct {
 	Name string
 	Id   string
+	SignId string
 }
 
 type login struct {

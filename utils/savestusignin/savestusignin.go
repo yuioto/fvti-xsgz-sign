@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -62,22 +61,22 @@ func PostStuSignIn(studentid string, id string, authorization string) error {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln("Error sending request:", err)
+		return fmt.Errorf("error sending request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Retrieve response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln("Error reading response:", err)
+		return fmt.Errorf("error reading response: %w", err)
 	}
 
 	// StatusCode should is Ok
 	if resp.StatusCode != cfgset.StatusSignOk_StatusCode {
-		log.Fatalln("Failed post sign, StatusCode:", resp.StatusCode, string(body))
+		return fmt.Errorf("failed post sign, StatusCode: %d, %s", resp.StatusCode, string(body))
 	}
-	if QD := GetTaskQD(id, authorization); QD != cfgset.StatusSignSuccessfullyOk {
-		return fmt.Errorf("server ok, but sign failed")
+	if QD, err := GetTaskQD(id, authorization); QD != cfgset.StatusSignSuccessfullyOk {
+		return fmt.Errorf("server ok, but sign failed: %w", err)
 	}
 
 	return nil

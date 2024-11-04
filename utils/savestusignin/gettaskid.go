@@ -4,35 +4,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	cfgset "fvti-xsgz-sign/utils/config"
 )
 
-func GetSignId(id string, authorization string) string {
+func GetSignId(id string, authorization string) (string, error) {
 	taskList, _ := GetTaskList(authorization)
 	qd, err := GetSignIdFromList(taskList, id)
 	if err != nil {
-		log.Fatalln(err)
+		return "", err
 	}
-	return qd
+	return qd, nil
 }
 
-func GetTaskQD(id string, authorization string) string {
+func GetTaskQD(id string, authorization string) (string, error) {
 	taskList, _ := GetTaskList(authorization)
 	qd, err := GetQDFromList(taskList, id)
 	if err != nil {
-		log.Fatalln(err)
+		return "", err
 	}
-	return qd
+	return qd, nil
 }
 
 func GetTaskId(name string, authorization string) (string, error) {
 	taskList, _ := GetTaskList(authorization)
 	id, err := GetIdFromList(taskList, name)
 	if err != nil {
-		log.Fatalln(err)
+		return "", err
 	}
 	return id, nil
 }
@@ -83,7 +82,7 @@ func GetTaskList(authorization string) (string, error) {
 	url := "https://xsgz.webvpn.fvti.cn/PhoneApi/api/SignIn/GetStuSignInList"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatalln("Error creating request:", err)
+		return "", fmt.Errorf("error creating request: %w", err)
 	}
 
 	// Setting the request header
@@ -104,19 +103,19 @@ func GetTaskList(authorization string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatalln("Error sending request:", err)
+		return "", fmt.Errorf("error sending request:  %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Retrieve response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln("Error reading response:", err)
+		return "", fmt.Errorf("error reading response: %w", err)
 	}
 
 	// StatusCode should is Ok
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalln("Failed get task list, StatusCode:", resp.StatusCode, string(body))
+		return "", fmt.Errorf("failed get task list, StatusCode: %d, %s", resp.StatusCode, string(body))
 	}
 
 	return string(body), nil
