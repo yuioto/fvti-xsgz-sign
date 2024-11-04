@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	cfgset "fvti-xsgz-sign/utils/config"
 	"fvti-xsgz-sign/utils/notify"
@@ -13,10 +14,15 @@ type Config cfgset.Config
 func main() {
 	// Read config file(Don't need Close())
 	configFile := cfgset.GetConfigFilePath("fvti-xsgz-sign")
+	if os.Getenv("FvtiSign") != "" {
+		configFile = os.Getenv("FvtiSign")
+	}
 	config, err := cfgset.LoadConfig(configFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	//fmt.Println(config)
 
 	if config.Login.Authorization == "" {
 		if config.Login.Authorization, err = savestusignin.GetAuthorization(config.StudentId, config.Login.Password); err != nil {
