@@ -16,7 +16,6 @@ func LoadConfig(configFile string) (Config, error) {
 			log.Println("Error:", err)
 			log.Println("Creating default config file")
 			CreateDefaultConfig(configFile)
-			fmt.Println("Example: 'Bearer {token}' --> 'Bearer you_token'")
 			log.Fatalln("Please write your config file at", configFile)
 		} else {
 			return config, fmt.Errorf("failed to check config file: %w", err)
