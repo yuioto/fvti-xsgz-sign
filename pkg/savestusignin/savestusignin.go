@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
-	cfgset "fvti-xsgz-sign/utils/config"
+	cfgset "fvti-xsgz-sign/pkg/set"
 )
 
 func PostStuSignIn(studentid string, id string, authorization string) error {

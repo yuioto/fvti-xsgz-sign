@@ -15,8 +15,9 @@ func CreateDefaultConfig(filename string) {
 			Authorization: "",
 		},
 		Task: task{
-			Name: "24级新生晚点名",
-			Id:   "",
+			Name:   "24级新生晚点名",
+			Id:     "",
+			SignId: "No need to fill in anything, auto-populates on request",
 		},
 		Nofy: "fvti-xsgz-sign-task-default-status",
 	}

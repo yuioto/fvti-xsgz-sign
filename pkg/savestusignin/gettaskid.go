@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	cfgset "fvti-xsgz-sign/utils/config"
+	cfgset "fvti-xsgz-sign/pkg/set"
 )
 
 func GetSignId(id string, authorization string) (string, error) {

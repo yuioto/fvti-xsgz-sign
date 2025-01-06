@@ -5,7 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	cfgset "fvti-xsgz-sign/utils/config"
+	cfgset "fvti-xsgz-sign/pkg/set"
 	"net/http"
 	"net/url"
 
