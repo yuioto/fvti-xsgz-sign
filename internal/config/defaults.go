@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"fvti-xsgz-sign/pkg/set"
+
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -19,7 +21,7 @@ func CreateDefaultConfig(filename string) {
 			Id:     "",
 			SignId: "No need to fill in anything, auto-populates on request",
 		},
-		Nofy: "fvti-xsgz-sign-task-default-status",
+		Nofy: set.NotyId,
 	}
 
 	file, err := os.Create(filename)

@@ -28,7 +28,10 @@ func GetTaskQD(id string, authorization string) (string, error) {
 }
 
 func GetTaskId(name string, authorization string) (string, error) {
-	taskList, _ := GetTaskList(authorization)
+	taskList, err := GetTaskList(authorization)
+	if err != nil {
+		return "", err
+	}
 	id, err := GetIdFromList(taskList, name)
 	if err != nil {
 		return "", err
@@ -79,7 +82,8 @@ func GetIdFromList(taskjson string, name string) (string, error) {
 }
 
 func GetTaskList(authorization string) (string, error) {
-	url := "https://xsgz.webvpn.fvti.cn/PhoneApi/api/SignIn/GetStuSignInList"
+	// must use http, if use https, will get timeout
+	url := "http://" + cfgset.Host + "/PhoneApi/api/SignIn/GetStuSignInList"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("error creating request: %w", err)

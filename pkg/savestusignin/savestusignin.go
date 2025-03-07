@@ -11,7 +11,7 @@ import (
 )
 
 func PostStuSignIn(studentid string, id string, authorization string) error {
-	signURL := "https://xsgz.webvpn.fvti.cn/PhoneApi/api/SignIn/SaveStuSignIn"
+	signURL := "http://" + cfgset.Host + "/PhoneApi/api/SignIn/SaveStuSignIn"
 
 	data := url.Values{}
 	data.Add("ApplyInfo[Id]", "00000000-0000-0000-0000-000000000000")

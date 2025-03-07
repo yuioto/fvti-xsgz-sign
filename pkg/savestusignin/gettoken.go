@@ -59,14 +59,18 @@ func login(studentId string, password string) (string, error) {
 	data.Set("username", studentId)
 	data.Set("password", password)
 
-	req, err := http.NewRequest("POST", "https://xsgz.webvpn.fvti.cn/PhoneApi/api/Account/Login?OpenId=", bytes.NewBufferString(data.Encode()))
+	// must use http, if use https, will get timeout
+	req, err := http.NewRequest("POST", "http://"+cfgset.Host+"/PhoneApi/api/Account/Login?OpenId=", bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		return "", err
 	}
 
 	// 设置请求头
 	req.Header.Set("User-Agent", cfgset.UserAgent)
+	req.Header.Set("Host", cfgset.Host)
+	req.Header.Set("Referer", cfgset.Referer)
 	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Origin", cfgset.Origin)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// 发送请求
@@ -79,6 +83,13 @@ func login(studentId string, password string) (string, error) {
 
 	// 处理响应
 	if resp.StatusCode == http.StatusOK {
+		/* debug: print response body
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", err
+		}
+		fmt.Println("Response body:", string(body))
+		*/
 		var loginResp LoginResponse
 		if err := json.NewDecoder(resp.Body).Decode(&loginResp); err != nil {
 			return "", err
