@@ -15,6 +15,9 @@ const Host = "zhxg.fvti.edu.cn"
 const Origin = "https://" + Host
 const Referer = "http://" + Host + "/Phone/index.html"
 
+// encode password publickey
+const PublicKeyBase64 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCK4n2xrbtnRyBqMJ2iiDeDRdJ/F8EVmzcjSGy/vVNfEVahl6sQOjQXZTc8AEbiZdyLnP9QwX3ZkIsEGUz1VMaPUJeHLHQC5uVljRWR0ORt4oiU7mtN5ZsEl8gPQBzSbC7IpnXVRN1Mx7s/RlFsWZgkuZKbPjxcfgoA9zXyhmcHywIDAQAB"
+
 const NotyId = "fvti-xsgz-sign-task-default-status"
 
 // reaueset

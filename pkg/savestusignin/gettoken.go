@@ -28,9 +28,7 @@ func GetAuthorization(studentId string, password string) (string, error) {
 }
 
 func GetEncodePassword(password string) (string, error) {
-	publicKeyBase64 := "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCK4n2xrbtnRyBqMJ2iiDeDRdJ/F8EVmzcjSGy/vVNfEVahl6sQOjQXZTc8AEbiZdyLnP9QwX3ZkIsEGUz1VMaPUJeHLHQC5uVljRWR0ORt4oiU7mtN5ZsEl8gPQBzSbC7IpnXVRN1Mx7s/RlFsWZgkuZKbPjxcfgoA9zXyhmcHywIDAQAB"
-
-	publicKey, err := parsePublicKey(publicKeyBase64)
+	publicKey, err := parsePublicKey(cfgset.PublicKeyBase64)
 	if err != nil {
 		return "", fmt.Errorf("公钥解析失败: %v", err)
 	}
