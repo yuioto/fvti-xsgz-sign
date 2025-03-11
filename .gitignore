@@ -31,6 +31,11 @@ go.work.sum
 ~.bak
 *.{temp,tmp}
 
+# justfile don't need
+# just only run go run main.go
+justfile
+Justfile
+
 # non-example file
 Config.toml
 xsgz-sign.hurl
