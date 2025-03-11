@@ -4,12 +4,11 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	cfgset "fvti-xsgz-sign/pkg/set"
 	"net/http"
 	"net/url"
-
-	"github.com/dop251/goja"
 )
 
 func GetAuthorization(studentId string, password string) (string, error) {
@@ -28,29 +27,25 @@ func GetAuthorization(studentId string, password string) (string, error) {
 	return bearer, nil
 }
 
-//go:embed encode.js
-var jsScript string
-
 func GetEncodePassword(password string) (string, error) {
-	// 创建一个新的JavaScript运行时
-	vm := goja.New()
+	publicKeyBase64 := "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCK4n2xrbtnRyBqMJ2iiDeDRdJ/F8EVmzcjSGy/vVNfEVahl6sQOjQXZTc8AEbiZdyLnP9QwX3ZkIsEGUz1VMaPUJeHLHQC5uVljRWR0ORt4oiU7mtN5ZsEl8gPQBzSbC7IpnXVRN1Mx7s/RlFsWZgkuZKbPjxcfgoA9zXyhmcHywIDAQAB"
 
-	// 执行嵌入的JavaScript代码
-	_, err := vm.RunString(jsScript)
+	publicKey, err := parsePublicKey(publicKeyBase64)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("公钥解析失败: %v", err)
 	}
 
-	// 调用JavaScript函数
-	vm.Set("password", password)
-	result, err := vm.RunString(`encode(password)`)
-	if err != nil {
-		return "", err
+	// 确保 publicKey 不是 nil
+	if publicKey == nil {
+		return "", errors.New("公钥为空")
 	}
 
-	// 获取返回值并打印
-	encodePass := result.ToString().String()
-	return encodePass, nil
+	encrypted, err := encryptPassword(password, publicKey)
+	if err != nil {
+		return "", fmt.Errorf("加密失败: %v", err)
+	}
+
+	return encrypted, nil
 }
 
 func login(studentId string, password string) (string, error) {
