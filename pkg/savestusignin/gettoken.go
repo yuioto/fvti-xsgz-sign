@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	cfgset "fvti-xsgz-sign/pkg/set"
+	cfgset "github.com/yuioto/fvti-xsgz-sign/pkg/set"
 	"net/http"
 	"net/url"
 )

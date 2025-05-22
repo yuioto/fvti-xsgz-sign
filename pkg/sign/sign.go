@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	cfgset "fvti-xsgz-sign/internal/config"
-	"fvti-xsgz-sign/pkg/notify"
-	"fvti-xsgz-sign/pkg/savestusignin"
+	cfgset "github.com/yuioto/fvti-xsgz-sign/internal/config"
+	"github.com/yuioto/fvti-xsgz-sign/pkg/notify"
+	"github.com/yuioto/fvti-xsgz-sign/pkg/savestusignin"
 )
 
 type Config cfgset.Config

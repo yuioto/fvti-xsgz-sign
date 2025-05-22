@@ -1,4 +1,4 @@
-module fvti-xsgz-sign
+module github.com/yuioto/fvti-xsgz-sign
 
 go 1.23.1
 

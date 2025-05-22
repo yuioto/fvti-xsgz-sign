@@ -1,8 +1,8 @@
 package main
 
 import (
-	cfgset "fvti-xsgz-sign/internal/config"
-	"fvti-xsgz-sign/pkg/sign"
+	cfgset "github.com/yuioto/fvti-xsgz-sign/internal/config"
+	"github.com/yuioto/fvti-xsgz-sign/pkg/sign"
 	"log"
 )
 

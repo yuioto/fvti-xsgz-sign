@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"fvti-xsgz-sign/pkg/set"
+	"github.com/yuioto/fvti-xsgz-sign/pkg/set"
 
 	"github.com/pelletier/go-toml/v2"
 )
