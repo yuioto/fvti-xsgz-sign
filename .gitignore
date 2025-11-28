@@ -9,6 +9,7 @@
 *.dylib
 # go build file use module name
 fvti-xsgz-sign
+out/
 
 # Test binary, built with `go test -c`
 *.test
