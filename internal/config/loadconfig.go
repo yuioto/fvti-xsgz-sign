@@ -4,31 +4,34 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
 )
 
+// LoadConfig loads the configuration from the specified file.
 func LoadConfig(configFile string) (Config, error) {
-	var config Config
+	// Initialize with defaults so that missing fields in TOML get default values
+	config := NewDefaultConfig()
 
 	if _, err := os.Stat(configFile); err != nil {
-		if os.IsNotExist(err) {
-			log.Println("Error:", err)
-			log.Println("Creating default config file")
-			CreateDefaultConfig(configFile)
-			log.Fatalln("Please write your config file at", configFile)
-		} else {
-			return config, fmt.Errorf("failed to check config file: %w", err)
+		if !os.IsNotExist(err) {
+			return config, fmt.Errorf("check config file: %w", err)
 		}
-	} else {
-		cfg, err := os.ReadFile(configFile)
-		if err != nil {
-			return config, fmt.Errorf("failed to read file: %w", err)
+
+		log.Printf("Config file not found at %s, creating default...", configFile)
+		if err := CreateDefaultConfig(configFile); err != nil {
+			return config, fmt.Errorf("create default config: %w", err)
 		}
-		if err := toml.Unmarshal(cfg, &config); err != nil {
-			return config, fmt.Errorf("failed to unmarshal TOML file: %w", err)
-		}
-		//log.Println("Config file read successfully")
+		return config, fmt.Errorf("please configure your settings in %s", configFile)
+	}
+
+	cfgBytes, err := os.ReadFile(filepath.Clean(configFile))
+	if err != nil {
+		return config, fmt.Errorf("read config file: %w", err)
+	}
+	if err := toml.Unmarshal(cfgBytes, &config); err != nil {
+		return config, fmt.Errorf("unmarshal config: %w", err)
 	}
 
 	return config, nil

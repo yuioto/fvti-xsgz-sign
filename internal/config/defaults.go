@@ -1,38 +1,56 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
-
-	"github.com/yuioto/fvti-xsgz-sign/pkg/set"
+	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
+	"github.com/yuioto/fvti-xsgz-sign/pkg/client"
 )
 
-func CreateDefaultConfig(filename string) {
-	defaultConfig := Config{
-		StudentId: "{fvti_student_id}",
-		Login: login{
+// DefaultNotifyTopic is the default topic for notifications.
+const DefaultNotifyTopic = "fvti-xsgz-sign-task-default-status"
+
+// NewDefaultConfig returns a Config with default values.
+func NewDefaultConfig() Config {
+	return Config{
+		StudentID: "{fvti_student_id}",
+		Login: Login{
 			Password:      "{fvti_xsgz_password}",
 			Authorization: "",
 		},
-		Task: task{
+		Task: Task{
 			Name:   "24级新生晚点名",
-			Id:     "",
-			SignId: "No need to fill in anything, auto-populates on request",
+			ID:     "",
+			SignID: "No need to fill in anything, auto-populates on request",
 		},
-		Nofy: set.NotyId,
+		Nofy: DefaultNotifyTopic,
+		Client: client.Config{
+			Host:      client.DefaultHost,
+			UserAgent: client.DefaultUserAgent,
+			Latitude:  client.DefaultLatitude,
+			Longitude: client.DefaultLongitude,
+			SignSite:  client.DefaultSignSite,
+		},
 	}
+}
 
-	file, err := os.Create(filename)
+// CreateDefaultConfig creates a default configuration file.
+func CreateDefaultConfig(filename string) error {
+	defaultConfig := NewDefaultConfig()
+
+	file, err := os.Create(filepath.Clean(filename))
 	if err != nil {
-		log.Fatalln("Failed to create file:", err)
+		return fmt.Errorf("failed to create file: %w", err)
 	}
 	defer file.Close()
 
 	encoder := toml.NewEncoder(file)
 	if err := encoder.Encode(defaultConfig); err != nil {
-		log.Fatalln("Failed to write default config:", err)
+		return fmt.Errorf("failed to write default config: %w", err)
 	}
 	log.Println("Create default config file successfully")
+	return nil
 }

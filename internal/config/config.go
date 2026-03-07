@@ -1,49 +1,52 @@
+// Package config provides configuration management for the application.
 package config
 
 import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
+
+	"github.com/yuioto/fvti-xsgz-sign/pkg/client"
 )
 
-func GetConfigFilePath(appname string) string {
-	var configDir string
-	const configFileName = "Config"
-	const configFile = configFileName + ".toml"
-
-	switch runtime.GOOS {
-	case "windows":
-		configDir = filepath.Join(os.Getenv("APPDATA"), appname)
-	case "linux":
-		configDir = filepath.Join(os.Getenv("HOME"), ".config", appname)
-	case "darwin":
-		configDir = filepath.Join(os.Getenv("HOME"), "Library", "Application Support", appname)
-	default:
-		configDir = "./"
+// GetConfigFilePath returns the path to the configuration file.
+func GetConfigFilePath(appName string) string {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		configDir = "."
+	} else {
+		configDir = filepath.Join(configDir, appName)
 	}
 
-	if err := os.MkdirAll(configDir, os.ModePerm); err != nil {
-		log.Fatalln("Failed to create dir:", err)
+	const configFile = "Config.toml"
+	const dirPerm = 0750
+
+	if err := os.MkdirAll(configDir, dirPerm); err != nil {
+		log.Printf("Failed to create config directory: %v", err)
+		return configFile
 	}
 
 	return filepath.Join(configDir, configFile)
 }
 
+// Config represents the application configuration.
 type Config struct {
-	StudentId string
-	Login     login
-	Task      task
-	Nofy      string
+	StudentID string        `toml:"StudentId"`
+	Login     Login         `toml:"Login"`
+	Task      Task          `toml:"Task"`
+	Nofy      string        `toml:"Nofy"`
+	Client    client.Config `toml:"Client"`
 }
 
-type task struct {
-	Name string
-	Id   string
-	SignId string
+// Task represents the task configuration.
+type Task struct {
+	Name   string `toml:"Name"`
+	ID     string `toml:"Id"`
+	SignID string `toml:"SignId"`
 }
 
-type login struct {
-	Password      string
-	Authorization string
+// Login represents the login configuration.
+type Login struct {
+	Password      string `toml:"Password"`
+	Authorization string `toml:"Authorization"`
 }
