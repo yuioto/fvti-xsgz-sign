@@ -11,6 +11,8 @@ var (
 	ErrLoginFailed = errors.New("login failed")
 	// ErrGetTaskListFailed is returned when the task list request fails.
 	ErrGetTaskListFailed = errors.New("get task list failed")
+	// ErrGetLeaveListFailed is returned when the leave list request fails.
+	ErrGetLeaveListFailed = errors.New("get leave list failed")
 	// ErrSignFailed is returned when the sign request fails.
 	ErrSignFailed = errors.New("sign failed")
 	// ErrTaskNotFound is returned when a task is not found.
