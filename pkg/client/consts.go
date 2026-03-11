@@ -23,10 +23,13 @@ const (
 	StatusSignSuccessfullyOk = "是"
 	// StatusSignOkStatusCode is the HTTP status code for a successful sign-in.
 	StatusSignOkStatusCode = http.StatusOK
+	// LeaveStatus is the status string for leave.
+	LeaveStatus = "休假中"
 )
 
 const (
 	pathLogin       = "/PhoneApi/api/Account/Login"
 	pathGetTaskList = "/PhoneApi/api/SignIn/GetStuSignInList"
 	pathSign        = "/PhoneApi/api/SignIn/SaveStuSignIn"
+	pathLeaveList   = "/PhoneApi/api/DailyLeave/GetStuList"
 )

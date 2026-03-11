@@ -26,6 +26,15 @@ func Run(cfg config.Config) error {
 		cfg.Login.Authorization = token
 	}
 
+	// Check leave status
+	leaveList, err := c.GetLeaveList(ctx, cfg.Login.Authorization)
+	if err != nil {
+		return fmt.Errorf("failed to get leave list: %w", err)
+	}
+	if leaveList.IsOnLeave() {
+		return errors.New("student is currently on leave")
+	}
+
 	// Get Task ID if missing
 	if cfg.Task.ID == "" {
 		taskList, err := c.GetTaskList(ctx, cfg.Login.Authorization)
@@ -40,7 +49,7 @@ func Run(cfg config.Config) error {
 	}
 
 	// Sign
-	_, err := c.Sign(ctx, cfg.Login.Authorization, cfg.StudentID, cfg.Task.ID)
+	_, err = c.Sign(ctx, cfg.Login.Authorization, cfg.StudentID, cfg.Task.ID)
 	if err != nil {
 		return fmt.Errorf("sign failed: %w", err)
 	}
