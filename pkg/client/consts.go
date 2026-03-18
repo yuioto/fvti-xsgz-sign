@@ -25,6 +25,8 @@ const (
 	StatusSignOkStatusCode = http.StatusOK
 	// LeaveStatus is the status string for leave.
 	LeaveStatus = "休假中"
+	// MakeupSign is used to identify makeup sign-in tasks.
+	MakeupSign = "补签"
 )
 
 const (

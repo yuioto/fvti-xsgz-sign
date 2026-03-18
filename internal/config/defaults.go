@@ -22,9 +22,9 @@ func NewDefaultConfig() Config {
 			Authorization: "",
 		},
 		Task: Task{
-			Name:   "24级新生晚点名",
+			Name:   "",
 			ID:     "",
-			SignID: "No need to fill in anything, auto-populates on request",
+			SignID: "",
 		},
 		Nofy: DefaultNotifyTopic,
 		Client: client.Config{

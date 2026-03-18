@@ -98,3 +98,14 @@ func encryptPassword(password string, publicKey *rsa.PublicKey) (string, error) 
 	}
 	return base64.StdEncoding.EncodeToString(encrypted), nil
 }
+
+// LoginResponse represents the response from the login API.
+type LoginResponse struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+	UserType     string `json:"UserType"`
+	IsActive     bool   `json:"IsActive"`
+	Msg          string `json:"Msg"`
+}

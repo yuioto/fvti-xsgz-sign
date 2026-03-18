@@ -35,18 +35,74 @@ func Run(cfg config.Config) error {
 		return errors.New("student is currently on leave")
 	}
 
-	// Get Task ID if missing
-	if cfg.Task.ID == "" {
-		taskList, err := c.GetTaskList(ctx, cfg.Login.Authorization)
+	// Get TaskList
+	taskList, err := c.GetTaskList(ctx, cfg.Login.Authorization)
+	if err != nil {
+		return fmt.Errorf("get task list failed: %w", err)
+	}
+
+	// Get Task
+	var task *client.Item
+
+	switch {
+	case cfg.Task.ID != "":
+		task, err = taskList.Select(
+			func(i *client.Item) (ok bool, score int) {
+				return i.ID == cfg.Task.ID, 0
+			},
+		)
+
 		if err != nil {
-			return fmt.Errorf("get task list failed: %w", err)
+			return fmt.Errorf("task id %q not found: %w", cfg.Task.ID, err)
 		}
-		taskID, err := taskList.FindTaskIDByName(cfg.Task.Name)
+	case cfg.Task.Name != "":
+		task, err = taskList.Select(
+			func(i *client.Item) (ok bool, score int) {
+				return i.Name == cfg.Task.Name, 0
+			},
+		)
+
+		if err != nil {
+			return fmt.Errorf("find task by name failed: %w", err)
+		}
+	default:
+		task, err = taskList.Select(
+			client.SelectUnsigned,
+			client.SelectNonMakeup,
+			func(i *client.Item) (ok bool, score int) {
+				return i.QD != "不在签到时间范围内", client.Important
+
+				/*
+					// Check i.QDTimeText version
+
+					layout := "15:04"
+					parts := strings.Split(i.QDTimeText, "至")
+					if len(parts) != 2 {
+						return false, 0
+					}
+
+					start, err1 := time.Parse(layout, strings.TrimSpace(parts[0]))
+					end, err2 := time.Parse(layout, strings.TrimSpace(parts[1]))
+					if err1 != nil || err2 != nil {
+						return false, 0
+					}
+
+					now := time.Now()
+					if now.Before(start) || now.After(end) {
+						return false, 0
+					}
+
+					return true, client.Important
+				*/
+			},
+		)
+
 		if err != nil {
 			return fmt.Errorf("find task failed: %w", err)
 		}
-		cfg.Task.ID = taskID
 	}
+
+	cfg.Task.ID = task.ID
 
 	// Sign
 	_, err = c.Sign(ctx, cfg.Login.Authorization, cfg.StudentID, cfg.Task.ID)
@@ -55,7 +111,7 @@ func Run(cfg config.Config) error {
 	}
 
 	// Verify
-	taskList, err := c.GetTaskList(ctx, cfg.Login.Authorization)
+	taskList, err = c.GetTaskList(ctx, cfg.Login.Authorization)
 	if err != nil {
 		return fmt.Errorf("verification failed (get list): %w", err)
 	}
