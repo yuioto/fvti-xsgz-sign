@@ -18,7 +18,7 @@ func GetConfigFilePath(appName string) string {
 		configDir = filepath.Join(configDir, appName)
 	}
 
-	const configFile = "Config.toml"
+	const configFile = "config.kdl"
 	const dirPerm = 0750
 
 	if err := os.MkdirAll(configDir, dirPerm); err != nil {
@@ -31,22 +31,29 @@ func GetConfigFilePath(appName string) string {
 
 // Config represents the application configuration.
 type Config struct {
-	StudentID string        `toml:"StudentId"`
-	Login     Login         `toml:"Login"`
-	Task      Task          `toml:"Task"`
-	Nofy      string        `toml:"Nofy"`
-	Client    client.Config `toml:"Client"`
+	Login  Login         `kdl:"login"`
+	Task   Task          `kdl:"task"`
+	Notify Notify        `kdl:"notify"`
+	Client client.Config `kdl:"client"`
 }
 
 // Task represents the task configuration.
 type Task struct {
-	Name   string `toml:"Name"`
-	ID     string `toml:"Id"`
-	SignID string `toml:"SignId"`
+	Name   string `kdl:"name"`
+	ID     string `kdl:"id"`
+	SignID string `kdl:"sign_id"`
 }
 
 // Login represents the login configuration.
 type Login struct {
-	Password      string `toml:"Password"`
-	Authorization string `toml:"Authorization"`
+	StudentID     string `kdl:"student_id"`
+	Password      string `kdl:"password"`
+	Authorization string `kdl:"authorization"`
+}
+
+// Notify represents the notify configuration.
+type Notify struct {
+	Ntfy struct {
+		Topic string `kdl:"topic"`
+	} `kdl:"ntfy"`
 }

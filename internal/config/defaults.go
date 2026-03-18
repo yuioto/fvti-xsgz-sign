@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/sblinch/kdl-go"
 	"github.com/yuioto/fvti-xsgz-sign/pkg/client"
 )
 
@@ -16,17 +16,17 @@ const DefaultNotifyTopic = "fvti-xsgz-sign-task-default-status"
 // NewDefaultConfig returns a Config with default values.
 func NewDefaultConfig() Config {
 	return Config{
-		StudentID: "{fvti_student_id}",
 		Login: Login{
-			Password:      "{fvti_xsgz_password}",
-			Authorization: "",
+			StudentID: "fvti_student_id",
+			Password:  "fvti_xsgz_password",
 		},
-		Task: Task{
-			Name:   "",
-			ID:     "",
-			SignID: "",
+		Notify: Notify{
+			Ntfy: struct {
+				Topic string `kdl:"topic"`
+			}{
+				Topic: DefaultNotifyTopic,
+			},
 		},
-		Nofy: DefaultNotifyTopic,
 		Client: client.Config{
 			Host:      client.DefaultHost,
 			UserAgent: client.DefaultUserAgent,
@@ -47,7 +47,7 @@ func CreateDefaultConfig(filename string) error {
 	}
 	defer file.Close()
 
-	encoder := toml.NewEncoder(file)
+	encoder := kdl.NewEncoder(file)
 	if err := encoder.Encode(defaultConfig); err != nil {
 		return fmt.Errorf("failed to write default config: %w", err)
 	}

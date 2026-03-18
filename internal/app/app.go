@@ -19,7 +19,7 @@ func Run(cfg config.Config) error {
 
 	// Login if no authorization token
 	if cfg.Login.Authorization == "" {
-		token, err := c.Login(ctx, cfg.StudentID, cfg.Login.Password)
+		token, err := c.Login(ctx, cfg.Login.StudentID, cfg.Login.Password)
 		if err != nil {
 			return fmt.Errorf("login failed: %w", err)
 		}
@@ -105,7 +105,7 @@ func Run(cfg config.Config) error {
 	cfg.Task.ID = task.ID
 
 	// Sign
-	_, err = c.Sign(ctx, cfg.Login.Authorization, cfg.StudentID, cfg.Task.ID)
+	_, err = c.Sign(ctx, cfg.Login.Authorization, cfg.Login.StudentID, cfg.Task.ID)
 	if err != nil {
 		return fmt.Errorf("sign failed: %w", err)
 	}
@@ -132,12 +132,12 @@ func Run(cfg config.Config) error {
 	cfg.Task.SignID = signID
 
 	msg := fmt.Sprintf("StudentId: %s Task.Name: %s Task.Id: %s Task.SignId: %s",
-		cfg.StudentID, cfg.Task.Name, cfg.Task.ID, cfg.Task.SignID)
+		cfg.Login.StudentID, cfg.Task.Name, cfg.Task.ID, cfg.Task.SignID)
 	// log.Println("Sign successful:", msg)
 
-	if cfg.Nofy != "" {
+	if cfg.Notify.Ntfy.Topic != "" {
 		notifier := notify.New(nil)
-		if err := notifier.Send(ctx, cfg.Nofy, "high", "Sign Done", msg); err != nil {
+		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", "Sign Done", msg); err != nil {
 			log.Printf("Failed to send notification: %v", err)
 		}
 	}

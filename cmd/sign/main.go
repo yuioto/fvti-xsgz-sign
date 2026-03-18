@@ -18,9 +18,9 @@ func main() {
 	}
 
 	if err := app.Run(cfg); err != nil {
-		if cfg.Nofy != "" {
+		if cfg.Notify.Ntfy.Topic != "" {
 			notifier := notify.New(nil)
-			if nErr := notifier.Send(context.Background(), cfg.Nofy, "max", "Sign Failed", err.Error()); nErr != nil {
+			if nErr := notifier.Send(context.Background(), cfg.Notify.Ntfy.Topic, "max", "Sign Failed", err.Error()); nErr != nil {
 				log.Printf("Failed to send failure notification: %v", nErr)
 			}
 		}

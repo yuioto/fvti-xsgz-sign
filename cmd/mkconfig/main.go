@@ -15,6 +15,6 @@ func CreateExampleConfig(filename string) {
 }
 
 func main() {
-	filename := "Config.example.toml"
+	filename := "config.example.kdl"
 	CreateExampleConfig(filename)
 }

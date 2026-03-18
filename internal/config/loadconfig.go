@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/sblinch/kdl-go"
 )
 
 // LoadConfig loads the configuration from the specified file.
 func LoadConfig(configFile string) (Config, error) {
-	// Initialize with defaults so that missing fields in TOML get default values
+	// Initialize with defaults so that missing fields in KDL get default values
 	config := NewDefaultConfig()
 
 	if _, err := os.Stat(configFile); err != nil {
@@ -30,7 +30,7 @@ func LoadConfig(configFile string) (Config, error) {
 	if err != nil {
 		return config, fmt.Errorf("read config file: %w", err)
 	}
-	if err := toml.Unmarshal(cfgBytes, &config); err != nil {
+	if err := kdl.Unmarshal(cfgBytes, &config); err != nil {
 		return config, fmt.Errorf("unmarshal config: %w", err)
 	}
 

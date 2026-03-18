@@ -38,5 +38,5 @@ justfile
 Justfile
 
 # non-example file
-Config.toml
+config.kdl
 xsgz-sign.hurl

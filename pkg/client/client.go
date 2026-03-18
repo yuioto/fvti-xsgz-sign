@@ -21,11 +21,11 @@ var (
 
 // Config holds the configuration for the Client.
 type Config struct {
-	Host      string `toml:"Host"`
-	UserAgent string `toml:"UserAgent"`
-	Latitude  string `toml:"Latitude"`
-	Longitude string `toml:"Longitude"`
-	SignSite  string `toml:"SignSite"`
+	Host      string `kdl:"host"`
+	UserAgent string `kdl:"user_agent"`
+	Latitude  string `kdl:"latitude"`
+	Longitude string `kdl:"longitude"`
+	SignSite  string `kdl:"sign_site"`
 }
 
 // Client is the API client for the sign-in service.
