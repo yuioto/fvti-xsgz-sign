@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/yuioto/fvti-xsgz-sign/internal/config"
+	"github.com/yuioto/fvti-xsgz-sign/internal/i18n"
 	"github.com/yuioto/fvti-xsgz-sign/pkg/client"
 	"github.com/yuioto/fvti-xsgz-sign/pkg/notify"
 )
@@ -28,7 +29,7 @@ func Run(cfg config.Config) error {
 	if cfg.Login.Authorization == "" {
 		token, err := c.Login(ctx, cfg.Login.StudentID, cfg.Login.Password)
 		if err != nil {
-			return fmt.Errorf("login failed: %w", err)
+			return fmt.Errorf(i18n.T(cfg.Locale, "error.login_failed"), err)
 		}
 		cfg.Login.Authorization = token
 	}
@@ -36,16 +37,16 @@ func Run(cfg config.Config) error {
 	// Check leave status
 	leaveList, err := c.GetLeaveList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf("failed to get leave list: %w", err)
+		return fmt.Errorf(i18n.T(cfg.Locale, "error.get_leave_failed"), err)
 	}
 	if leaveList.IsOnLeave() {
-		return errors.New("student is currently on leave")
+		return errors.New(i18n.T(cfg.Locale, "error.on_leave"))
 	}
 
 	// Get TaskList
 	taskList, err := c.GetTaskList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf("get task list failed: %w", err)
+		return fmt.Errorf(i18n.T(cfg.Locale, "error.get_task_list_failed"), err)
 	}
 
 	// Get Task
@@ -60,7 +61,7 @@ func Run(cfg config.Config) error {
 		)
 
 		if err != nil {
-			return fmt.Errorf("task id %q not found: %w", cfg.Task.ID, err)
+			return fmt.Errorf(i18n.T(cfg.Locale, "error.task_id_not_found"), cfg.Task.ID, err)
 		}
 	case cfg.Task.Name != "":
 		task, err = taskList.Select(
@@ -70,7 +71,7 @@ func Run(cfg config.Config) error {
 		)
 
 		if err != nil {
-			return fmt.Errorf("find task by name failed: %w", err)
+			return fmt.Errorf(i18n.T(cfg.Locale, "error.task_name_not_found"), err)
 		}
 	default:
 		task, err = taskList.Select(
@@ -105,9 +106,9 @@ func Run(cfg config.Config) error {
 		)
 
 		if err != nil {
-			message := fmt.Sprintf("automatic task selection failed: %v", err)
-			sendSignNotification(ctx, cfg, "Sign Failed", message)
-			return fmt.Errorf("no matching task found: %w", err)
+			message := fmt.Sprintf(i18n.T(cfg.Locale, "error.task_auto_select_failed"), err)
+			sendSignNotification(ctx, cfg, i18n.T(cfg.Locale, "notify.failure_title"), message)
+			return fmt.Errorf(i18n.T(cfg.Locale, "error.no_matching_task"), err)
 		}
 	}
 
@@ -116,38 +117,38 @@ func Run(cfg config.Config) error {
 	// Sign
 	_, err = c.Sign(ctx, cfg.Login.Authorization, cfg.Login.StudentID, cfg.Task.ID)
 	if err != nil {
-		return fmt.Errorf("sign failed: %w", err)
+		return fmt.Errorf(i18n.T(cfg.Locale, "error.sign_failed"), err)
 	}
 
 	// Verify
 	taskList, err = c.GetTaskList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf("verification failed (get list): %w", err)
+		return fmt.Errorf(i18n.T(cfg.Locale, "error.verify_get_task_list_failed"), err)
 	}
 
 	signed, err := taskList.IsTaskSigned(cfg.Task.ID)
 	if err != nil {
-		return fmt.Errorf("verification failed (check status): %w", err)
+		return fmt.Errorf(i18n.T(cfg.Locale, "error.verify_status_failed"), err)
 	}
 	if !signed {
-		return errors.New("server returned success but task is not marked as signed")
+		return errors.New(i18n.T(cfg.Locale, "error.server_succeed_not_signed"))
 	}
 
 	// Get SignID for notification/logging
 	signID, err := taskList.FindSignIDByTaskID(cfg.Task.ID)
 	if err != nil {
-		return fmt.Errorf("get SignId failed: %w", err)
+		return fmt.Errorf(i18n.T(cfg.Locale, "error.get_signid_failed"), err)
 	}
 	cfg.Task.SignID = signID
 
 	msg := fmt.Sprintf("StudentId: %s Task.Name: %s Task.Id: %s Task.SignId: %s",
 		cfg.Login.StudentID, cfg.Task.Name, cfg.Task.ID, cfg.Task.SignID)
-	// log.Println("Sign successful:", msg)
 
+	notifyTitle := i18n.T(cfg.Locale, "notify.success_title")
 	if cfg.Notify.Ntfy.Topic != "" {
 		notifier := notify.New(nil)
-		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", "Sign Done", msg); err != nil {
-			log.Printf("Failed to send notification: %v", err)
+		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", notifyTitle, msg); err != nil {
+			log.Printf(i18n.T(cfg.Locale, "error.ntfy_send_failed"), err)
 		}
 	}
 
@@ -161,11 +162,11 @@ func Run(cfg config.Config) error {
 			From:     emailCfg.From,
 			To:       emailCfg.To,
 		})
-		log.Printf("Sending email notification to %s via %s:%s", emailCfg.To, emailCfg.Host, emailCfg.Port)
-		if err := emailClient.Send(ctx, "Sign Done", msg); err != nil {
-			log.Printf("Failed to send email notification: %v", err)
+		log.Printf(i18n.T(cfg.Locale, "notify.email_sending"), emailCfg.To, emailCfg.Host, emailCfg.Port)
+		if err := emailClient.Send(ctx, notifyTitle, msg); err != nil {
+			log.Printf(i18n.T(cfg.Locale, "error.email_send_failed"), err)
 		} else {
-			log.Println("Email notification sent successfully")
+			log.Println(i18n.T(cfg.Locale, "notify.email_send_success"))
 		}
 	}
 
@@ -176,7 +177,7 @@ func sendSignNotification(ctx context.Context, cfg config.Config, title, message
 	if cfg.Notify.Ntfy.Topic != "" {
 		notifier := notify.New(nil)
 		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", title, message); err != nil {
-			log.Printf("Failed to send notification: %v", err)
+			log.Printf(i18n.T(cfg.Locale, "error.ntfy_send_failed"), err)
 		}
 	}
 
@@ -191,7 +192,7 @@ func sendSignNotification(ctx context.Context, cfg config.Config, title, message
 			To:       emailCfg.To,
 		})
 		if err := emailClient.Send(ctx, title, message); err != nil {
-			log.Printf("Failed to send email notification: %v", err)
+			log.Printf(i18n.T(cfg.Locale, "error.email_send_failed"), err)
 		}
 	}
 }

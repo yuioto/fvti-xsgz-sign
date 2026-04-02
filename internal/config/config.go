@@ -31,6 +31,7 @@ func GetConfigFilePath(appName string) string {
 
 // Config represents the application configuration.
 type Config struct {
+	Locale string        `kdl:"locale"`
 	Login  Login         `kdl:"login"`
 	Task   Task          `kdl:"task"`
 	Notify Notify        `kdl:"notify"`

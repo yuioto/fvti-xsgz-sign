@@ -16,6 +16,7 @@ const DefaultNotifyTopic = "fvti-xsgz-sign-task-default-status"
 // NewDefaultConfig returns a Config with default values.
 func NewDefaultConfig() Config {
 	return Config{
+		Locale: "zh-CN",
 		Login: Login{
 			StudentID: "fvti_student_id",
 			Password:  "fvti_xsgz_password",

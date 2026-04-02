@@ -8,23 +8,24 @@ import (
 
 	"github.com/yuioto/fvti-xsgz-sign/internal/app"
 	"github.com/yuioto/fvti-xsgz-sign/internal/config"
+	"github.com/yuioto/fvti-xsgz-sign/internal/i18n"
 	"github.com/yuioto/fvti-xsgz-sign/pkg/notify"
 )
 
 func main() {
 	cfg, err := loadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Fatalf(i18n.T("", "error.load_config"), err)
 	}
 
 	if err := app.Run(cfg); err != nil {
 		if cfg.Notify.Ntfy.Topic != "" {
 			notifier := notify.New(nil)
-			if nErr := notifier.Send(context.Background(), cfg.Notify.Ntfy.Topic, "max", "Sign Failed", err.Error()); nErr != nil {
-				log.Printf("Failed to send failure notification: %v", nErr)
+			if nErr := notifier.Send(context.Background(), cfg.Notify.Ntfy.Topic, "max", i18n.T(cfg.Locale, "notify.failure_title"), err.Error()); nErr != nil {
+				log.Printf(i18n.T(cfg.Locale, "notify.notify_send_failed"), nErr)
 			}
 		}
-		log.Fatalf("Run failed: %v", err)
+		log.Fatalf(i18n.T(cfg.Locale, "error.run_failed"), err)
 	}
 }
 
