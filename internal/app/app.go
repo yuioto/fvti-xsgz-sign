@@ -108,7 +108,7 @@ func Run(cfg config.Config) error {
 		if err != nil {
 			message := fmt.Sprintf(i18n.T(cfg.Locale, "error.task_auto_select_failed"), err)
 			sendSignNotification(ctx, cfg, i18n.T(cfg.Locale, "notify.failure_title"), message)
-			return fmt.Errorf(i18n.T(cfg.Locale, "error.no_matching_task"), err)
+			return errors.New(i18n.T(cfg.Locale, "error.no_matching_task"))
 		}
 	}
 
