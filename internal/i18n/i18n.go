@@ -1,115 +1,102 @@
 package i18n
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-	"sync"
+"embed"
+"fmt"
+"sync"
 
-	"github.com/pelletier/go-toml/v2"
+"github.com/pelletier/go-toml/v2"
 )
+
+//go:embed locales/*.toml
+var localeFiles embed.FS
+
+const fallback = "zh-CN"
 
 var (
-	bundle   = map[string]map[string]string{}
-	bundleMu sync.RWMutex
-	once     sync.Once
-	fallback = "zh-CN"
+bundle   map[string]map[string]string
+bundleMu sync.RWMutex
+initOnce sync.Once
+initErr  error
 )
 
-func localeFilePath(locale string) string {
-	candidates := []string{
-		filepath.Join("locales", fmt.Sprintf("%s.toml", locale)),
-		filepath.Join("..", "..", "locales", fmt.Sprintf("%s.toml", locale)),
-		filepath.Join("..", "..", "..", "locales", fmt.Sprintf("%s.toml", locale)),
-	}
-	for _, p := range candidates {
-		if _, err := os.Stat(p); err == nil {
-			return p
-		}
-	}
-	return candidates[0]
-}
-
+// Init loads all locale files exactly once. Subsequent calls return the same result.
 func Init() error {
-	var err error
-	once.Do(func() {
-		locales := []string{"zh-CN", "en", "ja"}
-		for _, locale := range locales {
-			path := localeFilePath(locale)
-			data, readErr := os.ReadFile(path)
-			if readErr != nil {
-				err = fmt.Errorf("load locale file %s: %w", path, readErr)
-				return
-			}
-
-			var raw map[string]interface{}
-			if unmarshalErr := toml.Unmarshal(data, &raw); unmarshalErr != nil {
-				err = fmt.Errorf("parse locale file %s: %w", path, unmarshalErr)
-				return
-			}
-
-			localized := map[string]string{}
-			flatten("", raw, localized)
-			bundleMu.Lock()
-			bundle[locale] = localized
-			bundleMu.Unlock()
-		}
-	})
-	return err
+initOnce.Do(func() {
+locales := []string{"zh-CN", "en", "ja"}
+m := make(map[string]map[string]string, len(locales))
+for _, locale := range locales {
+data, err := localeFiles.ReadFile(fmt.Sprintf("locales/%s.toml", locale))
+if err != nil {
+initErr = fmt.Errorf("load locale %s: %w", locale, err)
+return
+}
+var raw map[string]interface{}
+if err := toml.Unmarshal(data, &raw); err != nil {
+initErr = fmt.Errorf("parse locale %s: %w", locale, err)
+return
+}
+flat := make(map[string]string)
+flatten("", raw, flat)
+m[locale] = flat
+}
+bundleMu.Lock()
+bundle = m
+bundleMu.Unlock()
+})
+return initErr
 }
 
 func flatten(prefix string, src map[string]interface{}, dst map[string]string) {
-	for k, v := range src {
-		key := k
-		if prefix != "" {
-			key = prefix + "." + k
-		}
-
-		switch val := v.(type) {
-		case string:
-			dst[key] = val
-		case map[string]interface{}:
-			flatten(key, val, dst)
-		default:
-			// ignore unsupported types
-		}
-	}
+for k, v := range src {
+key := k
+if prefix != "" {
+key = prefix + "." + k
+}
+switch val := v.(type) {
+case string:
+dst[key] = val
+case map[string]interface{}:
+flatten(key, val, dst)
+}
+}
 }
 
+// T returns the localized string for key in the given locale.
+// Falls back to zh-CN if locale is empty or not found.
+// Supports fmt.Sprintf-style args when additional arguments are provided.
 func T(locale, key string, args ...interface{}) string {
-	if err := Init(); err != nil {
-		return fmt.Sprintf("[i18n init error: %v]", err)
-	}
+if err := Init(); err != nil {
+return key
+}
 
-	if locale == "" {
-		locale = fallback
-	}
+if locale == "" {
+locale = fallback
+}
 
-	bundleMu.RLock()
-	messages, ok := bundle[locale]
-	bundleMu.RUnlock()
-	if !ok {
-		bundleMu.RLock()
-		messages = bundle[fallback]
-		bundleMu.RUnlock()
-	}
+bundleMu.RLock()
+defer bundleMu.RUnlock()
 
-	if val, ok := messages[key]; ok {
-		if len(args) == 0 {
-			return val
-		}
-		return fmt.Sprintf(val, args...)
-	}
+if messages, ok := bundle[locale]; ok {
+if val, ok := messages[key]; ok {
+if len(args) == 0 {
+return val
+}
+return fmt.Sprintf(val, args...)
+}
+}
 
-	bundleMu.RLock()
-	fallbackMessages := bundle[fallback]
-	bundleMu.RUnlock()
-	if val, ok := fallbackMessages[key]; ok {
-		if len(args) == 0 {
-			return val
-		}
-		return fmt.Sprintf(val, args...)
-	}
+// fallback to zh-CN
+if locale != fallback {
+if messages, ok := bundle[fallback]; ok {
+if val, ok := messages[key]; ok {
+if len(args) == 0 {
+return val
+}
+return fmt.Sprintf(val, args...)
+}
+}
+}
 
-	return key
+return key
 }

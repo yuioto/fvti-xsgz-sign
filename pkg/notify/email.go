@@ -2,9 +2,12 @@ package notify
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net"
 	"net/smtp"
 	"strings"
+	"time"
 )
 
 // EmailClient is a client for sending email notifications.
@@ -40,11 +43,43 @@ func NewEmail(cfg EmailConfig) *EmailClient {
 	}
 }
 
+const smtpDialTimeout = 15 * time.Second
+
 // Send sends an email notification.
-func (e *EmailClient) Send(_ context.Context, title, message string) error {
+func (e *EmailClient) Send(ctx context.Context, title, message string) error {
 	addr := e.host + ":" + e.port
 
+	dialer := &net.Dialer{Timeout: smtpDialTimeout}
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
+	if err != nil {
+		return fmt.Errorf("send email failed: %w", err)
+	}
+
+	client, err := smtp.NewClient(conn, e.host)
+	if err != nil {
+		_ = conn.Close()
+		return fmt.Errorf("send email failed: %w", err)
+	}
+	defer client.Close()
+
+	if err := client.StartTLS(&tls.Config{ServerName: e.host}); err != nil {
+		return fmt.Errorf("send email failed: %w", err)
+	}
+
 	auth := smtp.PlainAuth("", e.username, e.password, e.host)
+	if err := client.Auth(auth); err != nil {
+		return fmt.Errorf("send email failed: %w", err)
+	}
+
+	if err := client.Mail(e.from); err != nil {
+		return fmt.Errorf("send email failed: %w", err)
+	}
+
+	for _, rcpt := range e.to {
+		if err := client.Rcpt(rcpt); err != nil {
+			return fmt.Errorf("send email failed: %w", err)
+		}
+	}
 
 	body := fmt.Sprintf("To: %s\r\nFrom: %s\r\nSubject: %s\r\n\r\n%s",
 		strings.Join(e.to, ", "),
@@ -53,10 +88,21 @@ func (e *EmailClient) Send(_ context.Context, title, message string) error {
 		message,
 	)
 
-	if err := smtp.SendMail(addr, auth, e.from, e.to, []byte(body)); err != nil {
+	w, err := client.Data()
+	if err != nil {
 		return fmt.Errorf("send email failed: %w", err)
 	}
-	return nil
+
+	if _, err := fmt.Fprint(w, body); err != nil {
+		_ = w.Close()
+		return fmt.Errorf("send email failed: %w", err)
+	}
+
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("send email failed: %w", err)
+	}
+
+	return client.Quit()
 }
 
 func splitAndTrim(s, sep string) []string {
@@ -70,3 +116,4 @@ func splitAndTrim(s, sep string) []string {
 	}
 	return result
 }
+
