@@ -158,10 +158,11 @@ func IsSupportedLocale(locale string) bool {
 // NormalizeLocale normalizes a locale string to a supported canonical locale.
 //
 // 例如：
-//   "" -> "zh-CN"
-//   "en-US" -> "en"
-//   "zh-TW" -> "zh-CN"
-//   "UNKNOWN" -> "zh-CN"（fallback）
+//
+//	"" -> "zh-CN"
+//	"en-US" -> "en"
+//	"zh-TW" -> "zh-CN"
+//	"UNKNOWN" -> "zh-CN"（fallback）
 //
 // 针对常见的 locale 变化（下划线、大小写、国家/地区后缀）做自动映射。
 func NormalizeLocale(locale string) string {

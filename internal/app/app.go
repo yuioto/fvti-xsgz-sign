@@ -148,7 +148,11 @@ func Run(cfg config.Config) error {
 	if cfg.Notify.Ntfy.Topic != "" {
 		notifier := notify.New(nil)
 		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", notifyTitle, msg); err != nil {
-			log.Printf(i18n.T(cfg.Locale, "error.ntfy_send_failed"), err)
+			key := notify.ErrorKey(err)
+			if key == "" {
+				key = "error.ntfy_send_failed"
+			}
+			log.Printf(i18n.T(cfg.Locale, key), err)
 		}
 	}
 
@@ -164,7 +168,11 @@ func Run(cfg config.Config) error {
 		})
 		log.Printf(i18n.T(cfg.Locale, "notify.email_sending"), emailCfg.To, emailCfg.Host, emailCfg.Port)
 		if err := emailClient.Send(ctx, notifyTitle, msg); err != nil {
-			log.Printf(i18n.T(cfg.Locale, "error.email_send_failed"), err)
+			key := notify.ErrorKey(err)
+			if key == "" {
+				key = "error.email_send_failed"
+			}
+			log.Printf(i18n.T(cfg.Locale, key), err)
 		} else {
 			log.Println(i18n.T(cfg.Locale, "notify.email_send_success"))
 		}
