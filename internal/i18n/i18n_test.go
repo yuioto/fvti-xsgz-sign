@@ -72,3 +72,10 @@ func TestMissingKeys(t *testing.T) {
 		t.Fatalf("expected no missing keys for en, got %d", len(missing))
 	}
 }
+
+func TestMissingKeysForJa(t *testing.T) {
+	missing := GetMissingKeys("ja")
+	if len(missing) != 0 {
+		t.Fatalf("expected no missing keys for ja, got %d", len(missing))
+	}
+}
