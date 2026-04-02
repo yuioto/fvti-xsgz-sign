@@ -109,7 +109,14 @@ func Run(cfg config.Config) error {
 		if err != nil {
 			message := fmt.Sprintf(i18n.T(cfg.Locale, "error.task_auto_select_failed"), err)
 			runAt := time.Now().In(time.FixedZone("CST", 8*3600)).Format("2006-01-02 15:04:05")
-			htmlMessage := notify.FormatSignEmailHTML("失败", message, runAt, nil)
+
+			notifyTasks, err2 := getNotifyTasks(ctx, c, cfg.Login.Authorization)
+			if err2 != nil {
+				log.Printf("获取签到列表失败：%v", err2)
+				message = "获取执行结果失败"
+			}
+
+			htmlMessage := notify.FormatSignEmailHTML("失败", message, runAt, notifyTasks)
 			sendSignNotification(ctx, cfg, i18n.T(cfg.Locale, "notify.failure_title"), message, htmlMessage)
 			return errors.New(i18n.T(cfg.Locale, "error.no_matching_task"))
 		}
@@ -147,13 +154,13 @@ func Run(cfg config.Config) error {
 	action := fmt.Sprintf("签到任务：%s (%s)", cfg.Task.Name, cfg.Task.ID)
 	runAt := time.Now().In(time.FixedZone("CST", 8*3600)).Format("2006-01-02 15:04:05")
 
-	taskListAfterSign, err := c.GetTaskList(ctx, cfg.Login.Authorization)
+	notifyTasks, err := getNotifyTasks(ctx, c, cfg.Login.Authorization)
 	if err != nil {
 		log.Printf("获取签到列表失败：%v", err)
+		action = "获取执行结果失败"
 	}
 
 	plainMessage := fmt.Sprintf("运行状态: 成功\n这次运行做了什么: %s\n本次运行的UTC+8时间: %s\n", action, runAt)
-	notifyTasks := taskListAfterSign.ToSummary()
 	htmlMessage := notify.FormatSignEmailHTML("成功", action, runAt, notifyTasks)
 
 	notifyTitle := i18n.T(cfg.Locale, "notify.success_title")
@@ -184,6 +191,17 @@ func sendSignNotification(ctx context.Context, cfg config.Config, title, plainMe
 			log.Printf(i18n.T(cfg.Locale, "error.email_send_failed"), err)
 		}
 	}
+}
+
+func getNotifyTasks(ctx context.Context, c *client.Client, auth string) ([]client.TaskSummary, error) {
+	taskList, err := c.GetTaskList(ctx, auth)
+	if err != nil {
+		return nil, err
+	}
+	if taskList == nil {
+		return nil, fmt.Errorf("task list is nil")
+	}
+	return taskList.ToSummary(), nil
 }
 
 // translateClientError maps client-layer errors to i18n keys and returns formatted error.

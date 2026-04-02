@@ -16,13 +16,9 @@ func (tl *TaskList) ToSummary() []TaskSummary {
 	}
 	result := make([]TaskSummary, 0, len(tl.List.Items))
 	for _, item := range tl.List.Items {
-		statusText := "未签到"
-		if item.QD == StatusSignSuccessfullyOk {
-			statusText = "已签到"
-		}
 		result = append(result, TaskSummary{
 			Name:       item.Name,
-			Status:     statusText,
+			Status:     item.QD,
 			QD:         item.QD,
 			SignID:     item.SignID,
 			QDTimeText: item.QDTimeText,

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -31,11 +32,15 @@ func (c *Client) GetTaskList(ctx context.Context, token string) (*TaskList, erro
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("%w: status %d, body: %s", ErrGetTaskListFailed, resp.StatusCode, string(body))
+		err := fmt.Errorf("%w: status %d, body: %s", ErrGetTaskListFailed, resp.StatusCode, string(body))
+		log.Printf("[debug] GetTaskList error: %v", err)
+		return nil, err
 	}
 
 	var taskList TaskList
 	if err := json.NewDecoder(resp.Body).Decode(&taskList); err != nil {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("[debug] GetTaskList decode failed, body: %s, err: %v", string(bodyBytes), err)
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 

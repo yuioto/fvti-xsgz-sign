@@ -17,8 +17,10 @@ func FormatSignEmailHTML(status, action, runAt string, tasks []client.TaskSummar
 	b.WriteString(fmt.Sprintf("<p><strong>本次运行的UTC+8时间：</strong>%s</p>", html.EscapeString(runAt)))
 
 	b.WriteString("<h3>签到列表状态</h3>")
-	if len(tasks) == 0 {
-		b.WriteString("<p>无法获取签到列表。</p>")
+	if tasks == nil {
+		b.WriteString("<p>获取执行结果失败。</p>")
+	} else if len(tasks) == 0 {
+		b.WriteString("<p>当前没有签到任务。</p>")
 	} else {
 		b.WriteString("<table border=\"1\" cellpadding=\"4\" cellspacing=\"0\">")
 		b.WriteString("<thead><tr><th>任务名称</th><th>签到情况</th><th>QD</th><th>SignID</th><th>QDTimeText</th></tr></thead><tbody>")
