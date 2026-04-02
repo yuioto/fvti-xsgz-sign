@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/yuioto/fvti-xsgz-sign/internal/config"
 	"github.com/yuioto/fvti-xsgz-sign/internal/i18n"
@@ -107,7 +108,9 @@ func Run(cfg config.Config) error {
 
 		if err != nil {
 			message := fmt.Sprintf(i18n.T(cfg.Locale, "error.task_auto_select_failed"), err)
-			sendSignNotification(ctx, cfg, i18n.T(cfg.Locale, "notify.failure_title"), message)
+			runAt := time.Now().In(time.FixedZone("CST", 8*3600)).Format("2006-01-02 15:04:05")
+			htmlMessage := notify.FormatSignEmailHTML("失败", message, runAt, nil)
+			sendSignNotification(ctx, cfg, i18n.T(cfg.Locale, "notify.failure_title"), message, htmlMessage)
 			return errors.New(i18n.T(cfg.Locale, "error.no_matching_task"))
 		}
 	}
@@ -141,50 +144,28 @@ func Run(cfg config.Config) error {
 	}
 	cfg.Task.SignID = signID
 
-	msg := fmt.Sprintf("StudentId: %s Task.Name: %s Task.Id: %s Task.SignId: %s",
-		cfg.Login.StudentID, cfg.Task.Name, cfg.Task.ID, cfg.Task.SignID)
+	action := fmt.Sprintf("签到任务：%s (%s)", cfg.Task.Name, cfg.Task.ID)
+	runAt := time.Now().In(time.FixedZone("CST", 8*3600)).Format("2006-01-02 15:04:05")
+
+	taskListAfterSign, err := c.GetTaskList(ctx, cfg.Login.Authorization)
+	if err != nil {
+		log.Printf("获取签到列表失败：%v", err)
+	}
+
+	plainMessage := fmt.Sprintf("运行状态: 成功\n这次运行做了什么: %s\n本次运行的UTC+8时间: %s\n", action, runAt)
+	notifyTasks := taskListAfterSign.ToSummary()
+	htmlMessage := notify.FormatSignEmailHTML("成功", action, runAt, notifyTasks)
 
 	notifyTitle := i18n.T(cfg.Locale, "notify.success_title")
-	if cfg.Notify.Ntfy.Topic != "" {
-		notifier := notify.New(nil)
-		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", notifyTitle, msg); err != nil {
-			key := notify.ErrorKey(err)
-			if key == "" {
-				key = "error.ntfy_send_failed"
-			}
-			log.Printf(i18n.T(cfg.Locale, key), err)
-		}
-	}
-
-	emailCfg := cfg.Notify.Email
-	if emailCfg.Host != "" && emailCfg.To != "" {
-		emailClient := notify.NewEmail(notify.EmailConfig{
-			Host:     emailCfg.Host,
-			Port:     emailCfg.Port,
-			Username: emailCfg.Username,
-			Password: emailCfg.Password,
-			From:     emailCfg.From,
-			To:       emailCfg.To,
-		})
-		log.Printf(i18n.T(cfg.Locale, "notify.email_sending"), emailCfg.To, emailCfg.Host, emailCfg.Port)
-		if err := emailClient.Send(ctx, notifyTitle, msg); err != nil {
-			key := notify.ErrorKey(err)
-			if key == "" {
-				key = "error.email_send_failed"
-			}
-			log.Printf(i18n.T(cfg.Locale, key), err)
-		} else {
-			log.Println(i18n.T(cfg.Locale, "notify.email_send_success"))
-		}
-	}
+	sendSignNotification(ctx, cfg, notifyTitle, plainMessage, htmlMessage)
 
 	return nil
 }
 
-func sendSignNotification(ctx context.Context, cfg config.Config, title, message string) {
+func sendSignNotification(ctx context.Context, cfg config.Config, title, plainMessage, htmlMessage string) {
 	if cfg.Notify.Ntfy.Topic != "" {
 		notifier := notify.New(nil)
-		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", title, message); err != nil {
+		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", title, plainMessage); err != nil {
 			log.Printf(i18n.T(cfg.Locale, "error.ntfy_send_failed"), err)
 		}
 	}
@@ -199,7 +180,7 @@ func sendSignNotification(ctx context.Context, cfg config.Config, title, message
 			From:     emailCfg.From,
 			To:       emailCfg.To,
 		})
-		if err := emailClient.Send(ctx, title, message); err != nil {
+		if err := emailClient.Send(ctx, title, htmlMessage); err != nil {
 			log.Printf(i18n.T(cfg.Locale, "error.email_send_failed"), err)
 		}
 	}
