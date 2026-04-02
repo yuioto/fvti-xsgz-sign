@@ -5,7 +5,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"os"
 
 	"github.com/yuioto/fvti-xsgz-sign/internal/config"
 	"github.com/yuioto/fvti-xsgz-sign/pkg/client"
@@ -14,6 +16,11 @@ import (
 
 // Run executes the main application logic.
 func Run(cfg config.Config) error {
+	if !cfg.Log.Console {
+		log.SetOutput(io.Discard)
+	} else {
+		log.SetOutput(os.Stderr)
+	}
 	ctx := context.Background()
 	c := client.New(client.WithConfig(cfg.Client))
 
@@ -70,7 +77,7 @@ func Run(cfg config.Config) error {
 			client.SelectUnsigned,
 			client.SelectNonMakeup,
 			func(i *client.Item) (ok bool, score int) {
-				return i.QD != "不在签到时间范围内", client.Important
+				return i.QD != client.SignOutOfTimeRange, client.Important
 
 				/*
 					// Check i.QDTimeText version
@@ -98,7 +105,9 @@ func Run(cfg config.Config) error {
 		)
 
 		if err != nil {
-			return fmt.Errorf("find task failed: %w", err)
+			message := fmt.Sprintf("automatic task selection failed: %v", err)
+			sendSignNotification(ctx, cfg, "Sign Failed", message)
+			return fmt.Errorf("no matching task found: %w", err)
 		}
 	}
 
@@ -142,5 +151,47 @@ func Run(cfg config.Config) error {
 		}
 	}
 
+	emailCfg := cfg.Notify.Email
+	if emailCfg.Host != "" && emailCfg.To != "" {
+		emailClient := notify.NewEmail(notify.EmailConfig{
+			Host:     emailCfg.Host,
+			Port:     emailCfg.Port,
+			Username: emailCfg.Username,
+			Password: emailCfg.Password,
+			From:     emailCfg.From,
+			To:       emailCfg.To,
+		})
+		log.Printf("Sending email notification to %s via %s:%s", emailCfg.To, emailCfg.Host, emailCfg.Port)
+		if err := emailClient.Send(ctx, "Sign Done", msg); err != nil {
+			log.Printf("Failed to send email notification: %v", err)
+		} else {
+			log.Println("Email notification sent successfully")
+		}
+	}
+
 	return nil
+}
+
+func sendSignNotification(ctx context.Context, cfg config.Config, title, message string) {
+	if cfg.Notify.Ntfy.Topic != "" {
+		notifier := notify.New(nil)
+		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", title, message); err != nil {
+			log.Printf("Failed to send notification: %v", err)
+		}
+	}
+
+	emailCfg := cfg.Notify.Email
+	if emailCfg.Host != "" && emailCfg.To != "" {
+		emailClient := notify.NewEmail(notify.EmailConfig{
+			Host:     emailCfg.Host,
+			Port:     emailCfg.Port,
+			Username: emailCfg.Username,
+			Password: emailCfg.Password,
+			From:     emailCfg.From,
+			To:       emailCfg.To,
+		})
+		if err := emailClient.Send(ctx, title, message); err != nil {
+			log.Printf("Failed to send email notification: %v", err)
+		}
+	}
 }

@@ -26,6 +26,24 @@ func NewDefaultConfig() Config {
 			}{
 				Topic: DefaultNotifyTopic,
 			},
+			Email: struct {
+				Host     string `kdl:"host"`
+				Port     string `kdl:"port"`
+				Username string `kdl:"username"`
+				Password string `kdl:"password"`
+				From     string `kdl:"from"`
+				To       string `kdl:"to"`
+			}{
+				Host:     "smtp.example.com",
+				Port:     "587",
+				Username: "user@example.com",
+				Password: "email_password",
+				From:     "user@example.com",
+				To:       "recipient@example.com",
+			},
+		},
+		Log: Log{
+			Console: true,
 		},
 		Client: client.Config{
 			Host:      client.DefaultHost,

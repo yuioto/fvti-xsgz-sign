@@ -35,6 +35,7 @@ type Config struct {
 	Task   Task          `kdl:"task"`
 	Notify Notify        `kdl:"notify"`
 	Client client.Config `kdl:"client"`
+	Log    Log           `kdl:"log"`
 }
 
 // Task represents the task configuration.
@@ -56,4 +57,17 @@ type Notify struct {
 	Ntfy struct {
 		Topic string `kdl:"topic"`
 	} `kdl:"ntfy"`
+	Email struct {
+		Host     string `kdl:"host"`
+		Port     string `kdl:"port"`
+		Username string `kdl:"username"`
+		Password string `kdl:"password"`
+		From     string `kdl:"from"`
+		To       string `kdl:"to"`
+	} `kdl:"email"`
+}
+
+// Log represents the log configuration.
+type Log struct {
+	Console bool `kdl:"console"`
 }

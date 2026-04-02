@@ -30,5 +30,17 @@ notify {
     ntfy {
         topic "fvti-xsgz-sign-task-default-status"
     }
+    email {
+        host "smtp.example.com"
+        port "587"
+        username "user@example.com"
+        password "email_password"
+        from "user@example.com"
+        to "recipient@example.com"
+    }
+}
+
+log {
+    console true
 }
 ```
