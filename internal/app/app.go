@@ -29,7 +29,7 @@ func Run(cfg config.Config) error {
 	if cfg.Login.Authorization == "" {
 		token, err := c.Login(ctx, cfg.Login.StudentID, cfg.Login.Password)
 		if err != nil {
-			return fmt.Errorf(i18n.T(cfg.Locale, "error.login_failed"), err)
+			return translateClientError(cfg, err, "error.login_failed")
 		}
 		cfg.Login.Authorization = token
 	}
@@ -37,7 +37,7 @@ func Run(cfg config.Config) error {
 	// Check leave status
 	leaveList, err := c.GetLeaveList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf(i18n.T(cfg.Locale, "error.get_leave_failed"), err)
+		return translateClientError(cfg, err, "error.get_leave_failed")
 	}
 	if leaveList.IsOnLeave() {
 		return errors.New(i18n.T(cfg.Locale, "error.on_leave"))
@@ -46,7 +46,7 @@ func Run(cfg config.Config) error {
 	// Get TaskList
 	taskList, err := c.GetTaskList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf(i18n.T(cfg.Locale, "error.get_task_list_failed"), err)
+		return translateClientError(cfg, err, "error.get_task_list_failed")
 	}
 
 	// Get Task
@@ -117,13 +117,13 @@ func Run(cfg config.Config) error {
 	// Sign
 	_, err = c.Sign(ctx, cfg.Login.Authorization, cfg.Login.StudentID, cfg.Task.ID)
 	if err != nil {
-		return fmt.Errorf(i18n.T(cfg.Locale, "error.sign_failed"), err)
+		return translateClientError(cfg, err, "error.sign_failed")
 	}
 
 	// Verify
 	taskList, err = c.GetTaskList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf(i18n.T(cfg.Locale, "error.verify_get_task_list_failed"), err)
+		return translateClientError(cfg, err, "error.verify_get_task_list_failed")
 	}
 
 	signed, err := taskList.IsTaskSigned(cfg.Task.ID)
@@ -195,4 +195,17 @@ func sendSignNotification(ctx context.Context, cfg config.Config, title, message
 			log.Printf(i18n.T(cfg.Locale, "error.email_send_failed"), err)
 		}
 	}
+}
+
+// translateClientError maps client-layer errors to i18n keys and returns formatted error.
+//
+// This helps keep the client package free of direct localization logic. Only the
+// application layer performs translation with locale templates.
+func translateClientError(cfg config.Config, err error, fallbackKey string) error {
+	key := client.ErrorKey(err)
+	if key == "" {
+		key = fallbackKey
+	}
+
+	return fmt.Errorf(i18n.T(cfg.Locale, key), err)
 }

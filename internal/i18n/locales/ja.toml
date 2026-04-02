@@ -21,5 +21,6 @@ verify_get_task_list_failed = "検証に失敗しました（タスクリスト�
 verify_status_failed = "検証に失敗しました（状態チェック）: %w"
 server_succeed_not_signed = "サーバーは成功を返しましたが、タスクはサイン済みとしてマークされていません"
 get_signid_failed = "SignIdの取得に失敗しました: %w"
+client_failed = "クライアントリクエストに失敗しました: %w"
 ntfy_send_failed = "ntfy通知の送信に失敗しました: %v"
 email_send_failed = "メール通知の送信に失敗しました: %v"
