@@ -33,6 +33,7 @@ func NewDefaultConfig() Config {
 				Username string `kdl:"username"`
 				Password string `kdl:"password"`
 				From     string `kdl:"from"`
+				FromName string `kdl:"from_name"`
 				To       string `kdl:"to"`
 			}{
 				Host:     "smtp.example.com",
@@ -40,6 +41,7 @@ func NewDefaultConfig() Config {
 				Username: "user@example.com",
 				Password: "email_password",
 				From:     "user@example.com",
+				FromName: "签到状态",
 				To:       "recipient@example.com",
 			},
 		},

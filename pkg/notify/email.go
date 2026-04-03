@@ -30,6 +30,7 @@ type EmailClient struct {
 	username string
 	password string
 	from     string
+	fromName string
 	to       []string
 }
 
@@ -40,6 +41,7 @@ type EmailConfig struct {
 	Username string
 	Password string
 	From     string
+	FromName string
 	To       string
 }
 
@@ -52,6 +54,7 @@ func NewEmail(cfg EmailConfig) *EmailClient {
 		username: cfg.Username,
 		password: cfg.Password,
 		from:     cfg.From,
+		fromName: cfg.FromName,
 		to:       to,
 	}
 }
@@ -219,7 +222,9 @@ func (e *EmailClient) Send(ctx context.Context, title, message string) error {
 		}
 	}
 
-	body := buildEmailBody(e.from, e.to, title, message)
+	displayFrom := formatDisplayFrom(e.from, e.fromName)
+
+	body := buildEmailBody(displayFrom, e.to, title, message)
 
 	w, err := client.Data()
 	if err != nil {
@@ -245,6 +250,13 @@ func buildEmailBody(from string, to []string, subject, htmlBody string) string {
 		subject,
 		htmlBody,
 	)
+}
+
+func formatDisplayFrom(from, fromName string) string {
+	if fromName == "" {
+		return from
+	}
+	return fmt.Sprintf("%q <%s>", fromName, from)
 }
 
 func splitAndTrim(s, sep string) []string {

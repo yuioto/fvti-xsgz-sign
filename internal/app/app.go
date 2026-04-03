@@ -119,7 +119,7 @@ func Run(cfg config.Config) error {
 			}
 
 			action := message
-			plainMessage := fmt.Sprintf("%s\n%s\n%s\n", 
+			plainMessage := fmt.Sprintf("%s\n%s\n%s\n",
 				fmt.Sprintf("%s: %s", i18n.T(cfg.Locale, "notify.email_status_label"), status),
 				fmt.Sprintf("%s: %s", i18n.T(cfg.Locale, "notify.email_action_label"), action),
 				fmt.Sprintf("%s: %s", i18n.T(cfg.Locale, "notify.email_run_at_label"), runAt),
@@ -169,7 +169,7 @@ func Run(cfg config.Config) error {
 		action = i18n.T(cfg.Locale, "notify.email_fetch_failed")
 	}
 
-	plainMessage := fmt.Sprintf("%s\n%s\n%s\n", 
+	plainMessage := fmt.Sprintf("%s\n%s\n%s\n",
 		fmt.Sprintf("%s: %s", i18n.T(cfg.Locale, "notify.email_status_label"), status),
 		fmt.Sprintf("%s: %s", i18n.T(cfg.Locale, "notify.email_action_label"), action),
 		fmt.Sprintf("%s: %s", i18n.T(cfg.Locale, "notify.email_run_at_label"), runAt),
@@ -198,6 +198,7 @@ func sendSignNotification(ctx context.Context, cfg config.Config, title, plainMe
 			Username: emailCfg.Username,
 			Password: emailCfg.Password,
 			From:     emailCfg.From,
+			FromName: emailCfg.FromName,
 			To:       emailCfg.To,
 		})
 		if err := emailClient.Send(ctx, title, htmlMessage); err != nil {

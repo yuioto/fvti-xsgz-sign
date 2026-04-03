@@ -22,6 +22,15 @@ func TestBuildEmailBody(t *testing.T) {
 	}
 }
 
+func TestFormatDisplayFrom(t *testing.T) {
+	if got := formatDisplayFrom("me@example.com", ""); got != "me@example.com" {
+		t.Fatalf("expected plain from, got %q", got)
+	}
+	if got := formatDisplayFrom("me@example.com", "定时签到"); got != "\"定时签到\" <me@example.com>" {
+		t.Fatalf("expected from name format, got %q", got)
+	}
+}
+
 func TestDialWithProxyDirect(t *testing.T) {
 	if err := os.Setenv("ALL_PROXY", ""); err != nil {
 		t.Fatal(err)
