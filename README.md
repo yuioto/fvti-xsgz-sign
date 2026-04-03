@@ -38,6 +38,7 @@ notify {
         from "user@example.com"
         from_name "定时签到"  # 可选，邮件 From 头显示昵称（默认定时签到）
         to "recipient@example.com"
+        cc "cc@example.com"  # 可选，抄送地址，支持逗号分隔
     }
 }
 

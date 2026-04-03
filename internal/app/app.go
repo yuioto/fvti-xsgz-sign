@@ -199,8 +199,7 @@ func sendSignNotification(ctx context.Context, cfg config.Config, title, plainMe
 			Password: emailCfg.Password,
 			From:     emailCfg.From,
 			FromName: emailCfg.FromName,
-			To:       emailCfg.To,
-		})
+			To:       emailCfg.To, Cc: emailCfg.Cc})
 		if err := emailClient.Send(ctx, title, htmlMessage); err != nil {
 			log.Printf(i18n.T(cfg.Locale, "error.email_send_failed"), err)
 		}

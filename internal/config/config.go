@@ -66,6 +66,7 @@ type Notify struct {
 		From     string `kdl:"from"`
 		FromName string `kdl:"from_name"`
 		To       string `kdl:"to"`
+		Cc       string `kdl:"cc"`
 	} `kdl:"email"`
 }
 

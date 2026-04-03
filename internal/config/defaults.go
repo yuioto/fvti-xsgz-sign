@@ -35,6 +35,7 @@ func NewDefaultConfig() Config {
 				From     string `kdl:"from"`
 				FromName string `kdl:"from_name"`
 				To       string `kdl:"to"`
+				Cc       string `kdl:"cc"`
 			}{
 				Host:     "smtp.example.com",
 				Port:     "587",
@@ -43,6 +44,7 @@ func NewDefaultConfig() Config {
 				From:     "user@example.com",
 				FromName: "签到状态",
 				To:       "recipient@example.com",
+				Cc:       "",
 			},
 		},
 		Log: Log{

@@ -32,6 +32,7 @@ type EmailClient struct {
 	from     string
 	fromName string
 	to       []string
+	cc       []string
 }
 
 // EmailConfig holds the configuration for the email client.
@@ -43,11 +44,13 @@ type EmailConfig struct {
 	From     string
 	FromName string
 	To       string
+	Cc       string
 }
 
 // NewEmail creates a new email notification client.
 func NewEmail(cfg EmailConfig) *EmailClient {
 	to := splitAndTrim(cfg.To, ",")
+	cc := splitAndTrim(cfg.Cc, ",")
 	return &EmailClient{
 		host:     cfg.Host,
 		port:     cfg.Port,
@@ -56,6 +59,7 @@ func NewEmail(cfg EmailConfig) *EmailClient {
 		from:     cfg.From,
 		fromName: cfg.FromName,
 		to:       to,
+		cc:       cc,
 	}
 }
 
@@ -221,10 +225,15 @@ func (e *EmailClient) Send(ctx context.Context, title, message string) error {
 			return fmt.Errorf("%w: %v", ErrEmailSendFailed, err)
 		}
 	}
+	for _, rcpt := range e.cc {
+		if err := client.Rcpt(rcpt); err != nil {
+			return fmt.Errorf("%w: %v", ErrEmailSendFailed, err)
+		}
+	}
 
 	displayFrom := formatDisplayFrom(e.from, e.fromName)
 
-	body := buildEmailBody(displayFrom, e.to, title, message)
+	body := buildEmailBody(displayFrom, e.to, e.cc, title, message)
 
 	w, err := client.Data()
 	if err != nil {
@@ -243,9 +252,15 @@ func (e *EmailClient) Send(ctx context.Context, title, message string) error {
 	return client.Quit()
 }
 
-func buildEmailBody(from string, to []string, subject, htmlBody string) string {
-	return fmt.Sprintf("To: %s\r\nFrom: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
+func buildEmailBody(from string, to []string, cc []string, subject, htmlBody string) string {
+	ccHeader := ""
+	if len(cc) > 0 {
+		ccHeader = fmt.Sprintf("Cc: %s\r\n", strings.Join(cc, ", "))
+	}
+
+	return fmt.Sprintf("To: %s\r\n%sFrom: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
 		strings.Join(to, ", "),
+		ccHeader,
 		from,
 		subject,
 		htmlBody,

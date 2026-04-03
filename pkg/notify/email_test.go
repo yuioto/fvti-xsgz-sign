@@ -10,7 +10,7 @@ import (
 )
 
 func TestBuildEmailBody(t *testing.T) {
-	body := buildEmailBody("me@example.com", []string{"you@example.com"}, "status", "<h1>ok</h1>")
+	body := buildEmailBody("me@example.com", []string{"you@example.com"}, nil, "status", "<h1>ok</h1>")
 	if body == "" {
 		t.Fatal("expected body not empty")
 	}
@@ -19,6 +19,20 @@ func TestBuildEmailBody(t *testing.T) {
 	}
 	if !contains(body, "<h1>ok</h1>") {
 		t.Fatalf("expected HTML payload, got %q", body)
+	}
+	if contains(body, "Cc:") {
+		t.Fatalf("did not expect Cc header when cc is nil: %q", body)
+	}
+}
+
+func TestBuildEmailBodyWithCc(t *testing.T) {
+	cc := []string{"cc1@example.com", "cc2@example.com"}
+	body := buildEmailBody("me@example.com", []string{"you@example.com"}, cc, "status", "<h1>ok</h1>")
+	if !contains(body, "Cc: cc1@example.com, cc2@example.com") {
+		t.Fatalf("expected Cc header, got %q", body)
+	}
+	if !contains(body, "Content-Type: text/html") {
+		t.Fatalf("expected HTML content-type, got %q", body)
 	}
 }
 
