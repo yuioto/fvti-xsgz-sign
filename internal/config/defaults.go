@@ -23,19 +23,19 @@ func NewDefaultConfig() Config {
 		},
 		Notify: Notify{
 			Ntfy: struct {
-				Topic string `kdl:"topic"`
+				Topic string `kdl:"topic,child"`
 			}{
 				Topic: DefaultNotifyTopic,
 			},
 			Email: struct {
-				Host     string `kdl:"host"`
-				Port     string `kdl:"port"`
-				Username string `kdl:"username"`
-				Password string `kdl:"password"`
-				From     string `kdl:"from"`
-				FromName string `kdl:"from_name"`
-				To       string `kdl:"to"`
-				Cc       string `kdl:"cc"`
+				Host     string `kdl:"host,child"`
+				Port     string `kdl:"port,child"`
+				Username string `kdl:"username,child"`
+				Password string `kdl:"password,child"`
+				From     string `kdl:"from,child"`
+				FromName string `kdl:"from_name,child"`
+				To       string `kdl:"to,child"`
+				Cc       string `kdl:"cc,child"`
 			}{
 				Host:     "smtp.example.com",
 				Port:     "587",
