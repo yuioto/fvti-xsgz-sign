@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -11,8 +10,6 @@ import (
 
 // Sign performs the sign-in action for a specific task.
 func (c *Client) Sign(ctx context.Context, token, studentID, taskID string) (string, error) {
-	u := url.URL{Scheme: "http", Host: c.config.Host, Path: pathSign}
-
 	data := url.Values{
 		"ApplyInfo[Id]":            {"00000000-0000-0000-0000-000000000000"},
 		"ApplyInfo[OrderId]":       {taskID},
@@ -39,21 +36,23 @@ func (c *Client) Sign(ctx context.Context, token, studentID, taskID string) (str
 		"ApplyInfo[InsertDate]":     {""},
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewBufferString(data.Encode()))
+	encodedBody := []byte(data.Encode())
+	resp, err := c.doRequestWithRetry(ctx, true, requestSpec{
+		method: http.MethodPost,
+		path:   pathSign,
+		bodyBytes: func() []byte {
+			return encodedBody
+		},
+		apply: func(req *http.Request) {
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Set("Authorization", token)
+			req.Header.Set("Sec-Fetch-Site", "same-origin")
+			req.Header.Set("Sec-Fetch-Mode", "cors")
+			req.Header.Set("Sec-Fetch-Dest", "empty")
+		},
+	})
 	if err != nil {
-		return "", fmt.Errorf("create request: %w", err)
-	}
-
-	c.setCommonHeaders(req)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", token)
-	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("Sec-Fetch-Mode", "cors")
-	req.Header.Set("Sec-Fetch-Dest", "empty")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("do request: %w", err)
+		return "", err
 	}
 	defer resp.Body.Close()
 
