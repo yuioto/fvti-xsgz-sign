@@ -6,36 +6,37 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net/http"
-	"net/url"
 	"strings"
 )
 
 // GetTaskList retrieves the list of tasks.
 func (c *Client) GetTaskList(ctx context.Context, token string) (*TaskList, error) {
-	u := url.URL{Scheme: "http", Host: c.config.Host, Path: pathGetTaskList}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	resp, err := c.doRequestWithRetry(ctx, true, requestSpec{
+		method: http.MethodGet,
+		path:   pathGetTaskList,
+		apply: func(req *http.Request) {
+			req.Header.Set("Authorization", token)
+		},
+	})
 	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
-	}
-
-	c.setCommonHeaders(req)
-	req.Header.Set("Authorization", token)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("do request: %w", err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("%w: status %d, body: %s", ErrGetTaskListFailed, resp.StatusCode, string(body))
+		err := fmt.Errorf("%w: status %d, body: %s", ErrGetTaskListFailed, resp.StatusCode, string(body))
+		log.Printf("[debug] GetTaskList error: %v", err)
+		return nil, err
 	}
 
 	var taskList TaskList
 	if err := json.NewDecoder(resp.Body).Decode(&taskList); err != nil {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("[debug] GetTaskList decode failed, body: %s, err: %v", string(bodyBytes), err)
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 

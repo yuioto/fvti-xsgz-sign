@@ -31,10 +31,12 @@ func GetConfigFilePath(appName string) string {
 
 // Config represents the application configuration.
 type Config struct {
+	Locale string        `kdl:"locale"`
 	Login  Login         `kdl:"login"`
 	Task   Task          `kdl:"task"`
 	Notify Notify        `kdl:"notify"`
 	Client client.Config `kdl:"client"`
+	Log    Log           `kdl:"log"`
 }
 
 // Task represents the task configuration.
@@ -54,6 +56,21 @@ type Login struct {
 // Notify represents the notify configuration.
 type Notify struct {
 	Ntfy struct {
-		Topic string `kdl:"topic"`
+		Topic string `kdl:"topic,child"`
 	} `kdl:"ntfy"`
+	Email struct {
+		Host     string `kdl:"host,child"`
+		Port     string `kdl:"port,child"`
+		Username string `kdl:"username,child"`
+		Password string `kdl:"password,child"`
+		From     string `kdl:"from,child"`
+		FromName string `kdl:"from_name,child"`
+		To       string `kdl:"to,child"`
+		Cc       string `kdl:"cc,child"`
+	} `kdl:"email"`
+}
+
+// Log represents the log configuration.
+type Log struct {
+	Console bool `kdl:"console"`
 }

@@ -40,3 +40,6 @@ Justfile
 # non-example file
 config.kdl
 xsgz-sign.hurl
+
+plan.md
+.github/

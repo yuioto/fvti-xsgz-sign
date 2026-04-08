@@ -16,16 +16,39 @@ const DefaultNotifyTopic = "fvti-xsgz-sign-task-default-status"
 // NewDefaultConfig returns a Config with default values.
 func NewDefaultConfig() Config {
 	return Config{
+		Locale: "zh-CN",
 		Login: Login{
 			StudentID: "fvti_student_id",
 			Password:  "fvti_xsgz_password",
 		},
 		Notify: Notify{
 			Ntfy: struct {
-				Topic string `kdl:"topic"`
+				Topic string `kdl:"topic,child"`
 			}{
 				Topic: DefaultNotifyTopic,
 			},
+			Email: struct {
+				Host     string `kdl:"host,child"`
+				Port     string `kdl:"port,child"`
+				Username string `kdl:"username,child"`
+				Password string `kdl:"password,child"`
+				From     string `kdl:"from,child"`
+				FromName string `kdl:"from_name,child"`
+				To       string `kdl:"to,child"`
+				Cc       string `kdl:"cc,child"`
+			}{
+				Host:     "smtp.example.com",
+				Port:     "587",
+				Username: "user@example.com",
+				Password: "email_password",
+				From:     "user@example.com",
+				FromName: "签到状态",
+				To:       "recipient@example.com",
+				Cc:       "",
+			},
+		},
+		Log: Log{
+			Console: true,
 		},
 		Client: client.Config{
 			Host:      client.DefaultHost,

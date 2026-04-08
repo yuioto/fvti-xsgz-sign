@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 )
 
 type LeaveList struct {
@@ -24,18 +23,16 @@ type LeaveItem struct {
 func (c *Client) GetLeaveList(ctx context.Context, token string) (*LeaveList, error) {
 	// pageIndex=1 is sufficient because we only need the newest leave status.
 	// This keeps the Items slice small and avoids unnecessary iteration later.
-	u := url.URL{Scheme: "http", Host: c.config.Host, Path: pathLeaveList, RawQuery: "pageIndex=1"}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	resp, err := c.doRequestWithRetry(ctx, true, requestSpec{
+		method:   http.MethodGet,
+		path:     pathLeaveList,
+		rawQuery: "pageIndex=1",
+		apply: func(req *http.Request) {
+			req.Header.Set("Authorization", token)
+		},
+	})
 	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
-	}
-
-	c.setCommonHeaders(req)
-	req.Header.Set("Authorization", token)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("do request: %w", err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 

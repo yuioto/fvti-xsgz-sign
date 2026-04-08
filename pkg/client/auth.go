@@ -2,7 +2,6 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
@@ -34,19 +33,21 @@ func (c *Client) Login(ctx context.Context, studentID, password string) (string,
 	data.Set("username", studentID)
 	data.Set("password", encPass)
 
-	u := url.URL{Scheme: "http", Host: c.config.Host, Path: pathLogin, RawQuery: "OpenId="}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewBufferString(data.Encode()))
+	encodedBody := []byte(data.Encode())
+	resp, err := c.doRequestWithRetry(ctx, true, requestSpec{
+		method:   http.MethodPost,
+		path:     pathLogin,
+		rawQuery: "OpenId=",
+		bodyBytes: func() []byte {
+			return encodedBody
+		},
+		apply: func(req *http.Request) {
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Set("Origin", "https://"+c.config.Host)
+		},
+	})
 	if err != nil {
-		return "", fmt.Errorf("create request: %w", err)
-	}
-
-	c.setCommonHeaders(req)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Origin", "https://"+c.config.Host)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("do request: %w", err)
+		return "", err
 	}
 	defer resp.Body.Close()
 

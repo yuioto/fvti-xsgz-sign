@@ -3,10 +3,16 @@ package notify
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
+)
+
+var (
+	// ErrNtfySendFailed is returned when ntfy notification send fails.
+	ErrNtfySendFailed = fmt.Errorf("ntfy send failed")
 )
 
 const (
@@ -40,7 +46,7 @@ func (c *Client) Send(ctx context.Context, topic, level, title, message string) 
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(message))
 	if err != nil {
-		return fmt.Errorf("create request failed: %w", err)
+		return fmt.Errorf("%w: create request failed: %v", ErrNtfySendFailed, err)
 	}
 
 	req.Header.Set("Markdown", "yes")
@@ -51,13 +57,24 @@ func (c *Client) Send(ctx context.Context, topic, level, title, message string) 
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("do request failed: %w", err)
+		return fmt.Errorf("%w: do request failed: %v", ErrNtfySendFailed, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return fmt.Errorf("%w: unexpected status code: %d", ErrNtfySendFailed, resp.StatusCode)
 	}
 
 	return nil
+}
+
+// ErrorKey maps notify errors to i18n translation keys.
+func ErrorKey(err error) string {
+	if err == nil {
+		return ""
+	}
+	if errors.Is(err, ErrNtfySendFailed) {
+		return "error.ntfy_send_failed"
+	}
+	return "error.notify_failed"
 }

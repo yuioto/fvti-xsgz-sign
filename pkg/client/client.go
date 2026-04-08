@@ -19,6 +19,31 @@ var (
 	ErrTaskNotFound = errors.New("task not found")
 )
 
+// ErrorKey maps canonical client errors to i18n translation keys.
+//
+// This keeps translation logic in the application layer instead of the client
+// layer while still allowing the client module to expose semantic error types.
+func ErrorKey(err error) string {
+	if err == nil {
+		return ""
+	}
+
+	switch {
+	case errors.Is(err, ErrLoginFailed):
+		return "error.login_failed"
+	case errors.Is(err, ErrGetLeaveListFailed):
+		return "error.get_leave_failed"
+	case errors.Is(err, ErrGetTaskListFailed):
+		return "error.get_task_list_failed"
+	case errors.Is(err, ErrSignFailed):
+		return "error.sign_failed"
+	case errors.Is(err, ErrTaskNotFound):
+		return "error.no_matching_task"
+	default:
+		return "error.client_failed"
+	}
+}
+
 // Config holds the configuration for the Client.
 type Config struct {
 	Host      string `kdl:"host"`

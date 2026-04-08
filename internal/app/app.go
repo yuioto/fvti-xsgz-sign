@@ -5,15 +5,30 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"os"
 
 	"github.com/yuioto/fvti-xsgz-sign/internal/config"
+	"github.com/yuioto/fvti-xsgz-sign/internal/i18n"
 	"github.com/yuioto/fvti-xsgz-sign/pkg/client"
-	"github.com/yuioto/fvti-xsgz-sign/pkg/notify"
 )
 
+// RunResult holds the outcome of a Run call.
+type RunResult struct {
+	TaskName    string
+	TaskID      string
+	SignID      string
+	NotifyTasks []client.TaskSummary
+}
+
 // Run executes the main application logic.
-func Run(cfg config.Config) error {
+func Run(cfg config.Config) (RunResult, error) {
+	if !cfg.Log.Console {
+		log.SetOutput(io.Discard)
+	} else {
+		log.SetOutput(os.Stderr)
+	}
 	ctx := context.Background()
 	c := client.New(client.WithConfig(cfg.Client))
 
@@ -21,7 +36,7 @@ func Run(cfg config.Config) error {
 	if cfg.Login.Authorization == "" {
 		token, err := c.Login(ctx, cfg.Login.StudentID, cfg.Login.Password)
 		if err != nil {
-			return fmt.Errorf("login failed: %w", err)
+			return RunResult{}, translateClientError(cfg, err, "error.login_failed")
 		}
 		cfg.Login.Authorization = token
 	}
@@ -29,16 +44,16 @@ func Run(cfg config.Config) error {
 	// Check leave status
 	leaveList, err := c.GetLeaveList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf("failed to get leave list: %w", err)
+		return RunResult{}, translateClientError(cfg, err, "error.get_leave_failed")
 	}
 	if leaveList.IsOnLeave() {
-		return errors.New("student is currently on leave")
+		return RunResult{}, errors.New(i18n.T(cfg.Locale, "error.on_leave"))
 	}
 
 	// Get TaskList
 	taskList, err := c.GetTaskList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf("get task list failed: %w", err)
+		return RunResult{}, translateClientError(cfg, err, "error.get_task_list_failed")
 	}
 
 	// Get Task
@@ -53,7 +68,8 @@ func Run(cfg config.Config) error {
 		)
 
 		if err != nil {
-			return fmt.Errorf("task id %q not found: %w", cfg.Task.ID, err)
+			return RunResult{NotifyTasks: taskList.ToSummary()},
+				fmt.Errorf(i18n.T(cfg.Locale, "error.task_id_not_found"), cfg.Task.ID, err)
 		}
 	case cfg.Task.Name != "":
 		task, err = taskList.Select(
@@ -63,14 +79,15 @@ func Run(cfg config.Config) error {
 		)
 
 		if err != nil {
-			return fmt.Errorf("find task by name failed: %w", err)
+			return RunResult{NotifyTasks: taskList.ToSummary()},
+				fmt.Errorf(i18n.T(cfg.Locale, "error.task_name_not_found"), err)
 		}
 	default:
 		task, err = taskList.Select(
 			client.SelectUnsigned,
 			client.SelectNonMakeup,
 			func(i *client.Item) (ok bool, score int) {
-				return i.QD != "不在签到时间范围内", client.Important
+				return i.QD != client.SignOutOfTimeRange, client.Important
 
 				/*
 					// Check i.QDTimeText version
@@ -98,7 +115,8 @@ func Run(cfg config.Config) error {
 		)
 
 		if err != nil {
-			return fmt.Errorf("find task failed: %w", err)
+			return RunResult{NotifyTasks: taskList.ToSummary()},
+				fmt.Errorf(i18n.T(cfg.Locale, "error.task_auto_select_failed"), err)
 		}
 	}
 
@@ -107,40 +125,51 @@ func Run(cfg config.Config) error {
 	// Sign
 	_, err = c.Sign(ctx, cfg.Login.Authorization, cfg.Login.StudentID, cfg.Task.ID)
 	if err != nil {
-		return fmt.Errorf("sign failed: %w", err)
+		return RunResult{TaskName: task.Name, TaskID: task.ID},
+			translateClientError(cfg, err, "error.sign_failed")
 	}
 
-	// Verify
+	// Verify (reuse the fetched taskList for NotifyTasks, avoiding an extra API call)
 	taskList, err = c.GetTaskList(ctx, cfg.Login.Authorization)
 	if err != nil {
-		return fmt.Errorf("verification failed (get list): %w", err)
+		return RunResult{TaskName: task.Name, TaskID: task.ID},
+			translateClientError(cfg, err, "error.verify_get_task_list_failed")
 	}
 
 	signed, err := taskList.IsTaskSigned(cfg.Task.ID)
 	if err != nil {
-		return fmt.Errorf("verification failed (check status): %w", err)
+		return RunResult{TaskName: task.Name, TaskID: task.ID, NotifyTasks: taskList.ToSummary()},
+			fmt.Errorf(i18n.T(cfg.Locale, "error.verify_status_failed"), err)
 	}
 	if !signed {
-		return errors.New("server returned success but task is not marked as signed")
+		return RunResult{TaskName: task.Name, TaskID: task.ID, NotifyTasks: taskList.ToSummary()},
+			errors.New(i18n.T(cfg.Locale, "error.server_succeed_not_signed"))
 	}
 
 	// Get SignID for notification/logging
 	signID, err := taskList.FindSignIDByTaskID(cfg.Task.ID)
 	if err != nil {
-		return fmt.Errorf("get SignId failed: %w", err)
-	}
-	cfg.Task.SignID = signID
-
-	msg := fmt.Sprintf("StudentId: %s Task.Name: %s Task.Id: %s Task.SignId: %s",
-		cfg.Login.StudentID, cfg.Task.Name, cfg.Task.ID, cfg.Task.SignID)
-	// log.Println("Sign successful:", msg)
-
-	if cfg.Notify.Ntfy.Topic != "" {
-		notifier := notify.New(nil)
-		if err := notifier.Send(ctx, cfg.Notify.Ntfy.Topic, "high", "Sign Done", msg); err != nil {
-			log.Printf("Failed to send notification: %v", err)
-		}
+		return RunResult{TaskName: task.Name, TaskID: task.ID, NotifyTasks: taskList.ToSummary()},
+			fmt.Errorf(i18n.T(cfg.Locale, "error.get_signid_failed"), err)
 	}
 
-	return nil
+	return RunResult{
+		TaskName:    task.Name,
+		TaskID:      task.ID,
+		SignID:      signID,
+		NotifyTasks: taskList.ToSummary(),
+	}, nil
+}
+
+// translateClientError maps client-layer errors to i18n keys and returns formatted error.
+//
+// This helps keep the client package free of direct localization logic. Only the
+// application layer performs translation with locale templates.
+func translateClientError(cfg config.Config, err error, fallbackKey string) error {
+	key := client.ErrorKey(err)
+	if key == "" {
+		key = fallbackKey
+	}
+
+	return fmt.Errorf(i18n.T(cfg.Locale, key), err)
 }

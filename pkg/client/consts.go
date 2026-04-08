@@ -27,6 +27,8 @@ const (
 	LeaveStatus = "休假中"
 	// MakeupSign is used to identify makeup sign-in tasks.
 	MakeupSign = "补签"
+	// SignOutOfTimeRange is the QD field value returned by the API when a task is outside the sign-in time window.
+	SignOutOfTimeRange = "不在签到时间范围内"
 )
 
 const (
